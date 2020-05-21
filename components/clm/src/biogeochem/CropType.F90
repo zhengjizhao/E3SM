@@ -75,8 +75,7 @@ module CropType
      procedure, public  :: Restart
      procedure, public  :: UpdateAccVars
      procedure, public  :: CropIncrementYear
-
-     procedure, private :: InitAllocate 
+     procedure, private :: InitAllocate
      procedure, private :: InitHistory
      procedure, private, nopass :: checkDates
 
@@ -94,10 +93,10 @@ contains
     type(bounds_type), intent(in)    :: bounds
     !
     ! !LOCAL VARIABLES:
-    
+
     character(len=*), parameter :: subname = 'Init'
     !-----------------------------------------------------------------------
-    
+
     call this%InitAllocate(bounds)
 
     if (crop_prog) then
@@ -115,7 +114,7 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
-    
+
     character(len=*), parameter :: subname = 'InitAllocate'
     !-----------------------------------------------------------------------
 
@@ -124,7 +123,7 @@ contains
     allocate(this%nyrs_crop_active_patch (begp:endp)) ; this%nyrs_crop_active_patch (:) = 0
     allocate(this%croplive_patch         (begp:endp)) ; this%croplive_patch         (:) = .false.
     allocate(this%cropplant_patch        (begp:endp)) ; this%cropplant_patch        (:) = .false.
-    allocate(this%harvdate_patch         (begp:endp)) ; this%harvdate_patch         (:) = huge(1) 
+    allocate(this%harvdate_patch         (begp:endp)) ; this%harvdate_patch         (:) = huge(1)
     allocate(this%fertnitro_patch        (begp:endp)) ; this%fertnitro_patch        (:) = spval
     allocate(this%gddplant_patch         (begp:endp)) ; this%gddplant_patch         (:) = spval
     allocate(this%gddtsoi_patch          (begp:endp)) ; this%gddtsoi_patch          (:) = spval
@@ -164,112 +163,112 @@ contains
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
-    
+!#py
     character(len=*), parameter :: subname = 'InitHistory'
     !-----------------------------------------------------------------------
-    
+!#py
     begp = bounds%begp; endp = bounds%endp
-
+!#py
     this%gddplant_patch(begp:endp) = spval
     call hist_addfld1d (fname='GDDPLANT', units='ddays', &
          avgflag='A', long_name='Accumulated growing degree days past planting date for crop', &
          ptr_patch=this%gddplant_patch, default='inactive')
-
+!#py
     this%gddtsoi_patch(begp:endp) = spval
     call hist_addfld1d (fname='GDDTSOI', units='ddays', &
          avgflag='A', long_name='Growing degree-days from planting (top two soil layers)', &
          ptr_patch=this%gddtsoi_patch, default='inactive')
-
+!#py
     this%crpyld_patch(begp:endp) = spval
     call hist_addfld1d (fname='CRPYLD', units='bu/acre', &
          avgflag='X', long_name='Crop yield (bu/acre)', &
          ptr_patch=this%crpyld_patch)
-
+!#py
     this%dmyield_patch(begp:endp) = spval
     call hist_addfld1d (fname='DMYIELD', units='t/ha', &
          avgflag='X', long_name='Crop yield (t/ha)', &
          ptr_patch=this%dmyield_patch)
-
+!#py
     this%cvt_patch(begp:endp) = spval
     call hist_addfld1d (fname='CVT', units='none', &
          avgflag='X', long_name='Temperature Coefficient of Variance', &
          ptr_patch=this%cvt_patch, default = 'inactive')
-
+!#py
     this%cvp_patch(begp:endp) = spval
     call hist_addfld1d (fname='CVP', units='none', &
          avgflag='X', long_name='Precipitation Coefficient of Variance', &
          ptr_patch=this%cvp_patch, default = 'inactive')
-
+!#py
     this%plantmonth_patch(begp:endp) = spval
     call hist_addfld1d (fname='PLANTMONTH', units='none', &
          avgflag='X', long_name='Month of planting', &
          ptr_patch=this%plantmonth_patch)
-
+!#py
     this%plantday_patch(begp:endp) = spval
     call hist_addfld1d (fname='PLANTDAY', units='doy', &
          avgflag='M', long_name='Date of planting', &
          ptr_patch=this%plantday_patch)
-
+!#py
     this%harvday_patch(begp:endp) = spval
     call hist_addfld1d (fname='HARVESTDAY', units='doy', &
          avgflag='M', long_name='Date of harvest', &
          ptr_patch=this%harvday_patch)
-
+!#py
     this%xt_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='XT', units='Degrees K', type2d='month', &
          avgflag='A', long_name='Monthly average temperature', &
          ptr_patch=this%xt_patch, default = 'inactive')
-
+!#py
     this%xp_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='XP', units='mm', type2d='month', &
          avgflag='A', long_name='Monthly total precipitation', &
          ptr_patch=this%xp_patch, default = 'inactive')
-
+!#py
     this%xt_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='XT_BAR', units='Degrees K', type2d='month', &
          avgflag='A', long_name='EWMA Temperature', &
          ptr_patch=this%xt_bar_patch, default = 'inactive')
-
+!#py
     this%xp_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='XP_bar', units='mm', type2d='month', &
          avgflag='A', long_name='EMWA Precipitation', &
          ptr_patch=this%xp_bar_patch, default = 'inactive')
-
+!#py
     this%prev_xt_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='PREV_XT_BAR', units='Degrees K', type2d='month', &
          avgflag='A', long_name='Previous EWMA Temperature', &
          ptr_patch=this%prev_xt_bar_patch, default = 'inactive')
-
+!#py
     this%prev_xp_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='PREV_XP_bar', units='mm', type2d='month', &
          avgflag='A', long_name='Previous EMWA Precipitation', &
          ptr_patch=this%prev_xp_bar_patch, default = 'inactive')
-
+!#py
     this%p2ETo_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='P2ETO', units='mm', type2d='month', &
          avgflag='A', long_name='Precipitation:Evapotranspiration ratio', &
          ptr_patch=this%p2ETo_patch)
-
+!#py
     this%p2ETo_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='P2ETO_bar', units='mm', type2d='month', &
          avgflag='A', long_name='EWMA Precipitation:Evapotranspiration ratio', &
          ptr_patch=this%p2ETo_bar_patch)
-
+!#py
     this%prev_p2ETo_bar_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='PREV_P2ETO_bar', units='mm', type2d='month', &
          avgflag='A', long_name='Previous EWMA Precipitation:Evapotranspirationratio', &
          ptr_patch=this%prev_p2ETo_bar_patch)
-
+!#py
     this%P2E_rm_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='P2E_rm', units='mm', type2d='month', &
          avgflag='A', long_name='Precipitation:Evapotranspiration ratio 4-month sum', &
          ptr_patch=this%P2E_rm_patch)
-
+!#py
     this%ETo_patch(begp:endp,:) = spval
     call hist_addfld2d (fname='ETO', units='mm', type2d='month', &
          avgflag='A', long_name='Reference Evapotranspiration', &
          ptr_patch=this%ETo_patch)
-
+!#py
   end subroutine InitHistory
 
 
@@ -282,35 +281,35 @@ contains
     ! restart file for restart or branch runs
     ! Each interval and accumulation type is unique to each field processed.
     ! Routine [initAccBuffer] defines the fields to be processed
-    ! and the type of accumulation. 
+    ! and the type of accumulation.
     ! Routine [updateAccVars] does the actual accumulation for a given field.
-    ! Fields are accumulated by calls to subroutine [update_accum_field]. 
-    ! To accumulate a field, it must first be defined in subroutine [initAccVars] 
+    ! Fields are accumulated by calls to subroutine [update_accum_field].
+    ! To accumulate a field, it must first be defined in subroutine [initAccVars]
     ! and then accumulated by calls to [updateAccVars].
     !
     ! Should only be called if crop_prog is true
     !
-    ! !USES 
+    ! !USES
     use accumulMod       , only : init_accum_field
     !
     ! !ARGUMENTS:
     class(crop_type) , intent(in) :: this
-    type(bounds_type), intent(in) :: bounds  
-
+    type(bounds_type), intent(in) :: bounds
+!#py
     !
     ! !LOCAL VARIABLES:
     integer, parameter :: not_used = huge(1)
-
+!#py
     !---------------------------------------------------------------------
-
+!#py
     call init_accum_field (name='GDDPLANT', units='K', &
          desc='growing degree-days from planting', accum_type='runaccum', accum_period=not_used,  &
          subgrid_type='pft', numlev=1, init_value=0._r8)
-
+!#py
     call init_accum_field (name='GDDTSOI', units='K', &
          desc='growing degree-days from planting (top two soil layers)', accum_type='runaccum', accum_period=not_used,  &
          subgrid_type='pft', numlev=1, init_value=0._r8)
-
+!#py
   end subroutine InitAccBuffer
 
   !-----------------------------------------------------------------------
@@ -319,7 +318,7 @@ contains
     ! !DESCRIPTION:
     ! Initialize module variables that are associated with
     ! time accumulated fields. This routine is called for both an initial run
-    ! and a restart run (and must therefore must be called after the restart file 
+    ! and a restart run (and must therefore must be called after the restart file
     ! is read in and the accumulation buffer is obtained)
     !
     ! !USES:
@@ -335,12 +334,12 @@ contains
     integer  :: nstep
     integer  :: ier
     real(r8), pointer :: rbufslp(:)  ! temporary
-    
+!#py
     character(len=*), parameter :: subname = 'InitAccVars'
     !-----------------------------------------------------------------------
-    
+!#py
     begp = bounds%begp; endp = bounds%endp
-
+!#py
     ! Allocate needed dynamic memory for single level pft field
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
@@ -348,17 +347,17 @@ contains
        call endrun(msg=" allocation error for rbufslp"//&
             errMsg(__FILE__, __LINE__))
     endif
-
+!#py
     nstep = get_nstep()
-
-    call extract_accum_field ('GDDPLANT', rbufslp, nstep) 
+!#py
+    call extract_accum_field ('GDDPLANT', rbufslp, nstep)
     this%gddplant_patch(begp:endp) = rbufslp(begp:endp)
-
-    call extract_accum_field ('GDDTSOI', rbufslp, nstep) 
+!#py
+    call extract_accum_field ('GDDTSOI', rbufslp, nstep)
     this%gddtsoi_patch(begp:endp)  = rbufslp(begp:endp)
-
+!#py
     deallocate(rbufslp)
-
+!#py
   end subroutine InitAccVars
 
   !-----------------------------------------------------------------------
@@ -367,14 +366,14 @@ contains
     ! !USES:
     use restUtilMod
     use ncdio_pio
-    use VegetationType , only : veg_pp                
+    use VegetationType , only : veg_pp
     use pftvarcon      , only : npcropmin, npcropmax
     !
     ! !ARGUMENTS:
     class(crop_type), intent(inout)  :: this
-    type(bounds_type), intent(in)    :: bounds 
-    type(file_desc_t), intent(inout) :: ncid   
-    character(len=*) , intent(in)    :: flag   
+    type(bounds_type), intent(in)    :: bounds
+    type(file_desc_t), intent(inout) :: ncid
+    character(len=*) , intent(in)    :: flag
     !
     ! !LOCAL VARIABLES:
     integer, pointer :: temp1d(:) ! temporary
@@ -383,10 +382,10 @@ contains
     logical :: readvar   ! determine if variable is on initial file
     real(r8), pointer :: ptr2d(:,:) ! temp. pointers for slicing larger arrays
     real(r8), pointer :: ptr1d(:)   ! temp. pointers for slicing larger arrays
-
+!#py
     character(len=*), parameter :: subname = 'Restart'
     !-----------------------------------------------------------------------
-
+!#py
     if (use_crop) then
        call restartvar(ncid=ncid, flag=flag, varname='nyrs_crop_active', xtype=ncd_int, &
             dim1name='pft', &
@@ -397,7 +396,7 @@ contains
           ! BACKWARDS_COMPATIBILITY(wjs, 2017-02-17) Old restart files did not have this
           ! patch-level variable. Instead, they had a single scalar tracking the number
           ! of years the crop model ran. Copy this scalar onto all *active* crop patches.
-
+!#py
           ! Some arguments in the following restartvar call are irrelevant, because we
           ! only call this for 'read'. I'm simply maintaining the old restartvar call.
           call restartvar(ncid=ncid, flag=flag,  varname='restyear', xtype=ncd_int,  &
@@ -412,9 +411,9 @@ contains
              end do
           end if
        end if
-
+!#py
        allocate(temp1d(bounds%begp:bounds%endp))
-       if (flag == 'write') then 
+       if (flag == 'write') then
           do p= bounds%begp,bounds%endp
              if (this%croplive_patch(p)) then
                 temp1d(p) = 1
@@ -427,7 +426,7 @@ contains
             dim1name='pft', &
             long_name='Flag that crop is alive, but not harvested', &
             interpinic_flag='interp', readvar=readvar, data=temp1d)
-       if (flag == 'read') then 
+       if (flag == 'read') then
           do p= bounds%begp,bounds%endp
              if (temp1d(p) == 1) then
                 this%croplive_patch(p) = .true.
@@ -437,9 +436,9 @@ contains
           end do
        end if
        deallocate(temp1d)
-
+!#py
        allocate(temp1d(bounds%begp:bounds%endp))
-       if (flag == 'write') then 
+       if (flag == 'write') then
           do p= bounds%begp,bounds%endp
              if (this%cropplant_patch(p)) then
                 temp1d(p) = 1
@@ -452,7 +451,7 @@ contains
             dim1name='pft', &
             long_name='Flag that crop is planted, but not harvested' , &
             interpinic_flag='interp', readvar=readvar, data=temp1d)
-       if (flag == 'read') then 
+       if (flag == 'read') then
           do p= bounds%begp,bounds%endp
              if (temp1d(p) == 1) then
                 this%cropplant_patch(p) = .true.
@@ -462,15 +461,15 @@ contains
           end do
        end if
        deallocate(temp1d)
-
+!#py
        call restartvar(ncid=ncid, flag=flag,  varname='harvdate', xtype=ncd_int,  &
-            dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), & 
+            dim1name='pft', long_name='harvest date', units='jday', nvalid_range=(/1,366/), &
             interpinic_flag='interp', readvar=readvar, data=this%harvdate_patch)
-
+!#py
        call restartvar(ncid=ncid, flag=flag,  varname='vf', xtype=ncd_double,  &
             dim1name='pft', long_name='vernalization factor', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%vf_patch)
-
+!#py
        call restartvar(ncid=ncid, flag=flag,  varname='cphase',xtype=ncd_double, &
             dim1name='pft', long_name='crop phenology phase', &
             units='0-not planted, 1-planted, 2-leaf emerge, 3-grain fill, 4-harvest', &
@@ -484,85 +483,85 @@ contains
             dim1name='pft', &
             long_name='temperature coefficient of variance', units='unitless', &
             interpinic_flag='interp', readvar=readvar, data=this%cvt_patch)
-
+!#py
        call restartvar(ncid=ncid, flag=flag, varname='cvp', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='precipitation coefficient of variance', units='unitless', &
             interpinic_flag='interp', readvar=readvar, data=this%cvp_patch)
-
+!#py
        call restartvar(ncid=ncid, flag=flag, varname='plantmonth', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='Month of planting', units='unitless', &
             interpinic_flag='interp', readvar=readvar, data=this%plantmonth_patch)
-
+!#py
        ptr2d => this%xt_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='xt', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='monthly average temperature', units='Kelvin', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%xp_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='xp', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='monthly average precipitation', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%xt_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='xt_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='ewma temperature', units='Kelvin', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%xp_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='xp_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='ewma precipitation', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%prev_xt_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='prev_xt_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='previous ewma temperature', units='Kelvin', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%prev_xp_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='prev_xp_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='previous ewma precipitation', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%p2ETo_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='p2ETo', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='precipitation:evapotranspiration ratio', units='mm/s', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%p2ETo_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='p2ETo_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='ewma P:PET', units='none', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%prev_p2ETo_bar_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='prev_p2ETo_bar', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='previous ewma P:PET', units='none', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%P2E_rm_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='P2E_rm', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='precipitation:evapotranspiration ratio 4-month sum', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
        ptr2d => this%ETo_patch(:,:)
        call restartvar(ncid=ncid, flag=flag, varname='ETo', xtype=ncd_double, &
             dim1name='pft',dim2name='month', switchdim=.true., &
             long_name='reference evapotranspiration', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=ptr2d)
-
+!#py
     end if
-
+!#py
   end subroutine Restart
 
   !-----------------------------------------------------------------------
@@ -579,7 +578,7 @@ contains
     use clm_time_manager , only : get_step_size, get_nstep
     use pftvarcon        , only : nwcereal, nwcerealirrig, mxtmp, baset
     use TemperatureType  , only : temperature_type
-    use VegetationType   , only : veg_pp                
+    use VegetationType   , only : veg_pp
     use ColumnType       , only : col_pp
     !
     ! !ARGUMENTS:
@@ -595,25 +594,25 @@ contains
     integer :: ier   ! error status
     integer :: begp, endp
     real(r8), pointer :: rbufslp(:)      ! temporary single level - pft level
-    
+!#py
     character(len=*), parameter :: subname = 'UpdateAccVars'
     !-----------------------------------------------------------------------
-    
+!#py
     begp = bounds%begp; endp = bounds%endp
-
+!#py
     dtime = get_step_size()
     nstep = get_nstep()
-
+!#py
     ! Allocate needed dynamic memory for single level pft field
-
+!#py
     allocate(rbufslp(begp:endp), stat=ier)
     if (ier/=0) then
        write(iulog,*)'update_accum_hist allocation error for rbuf1dp'
        call endrun(msg=errMsg(__FILE__, __LINE__))
     endif
-
+!#py
     ! Accumulate and extract GDDPLANT
-    
+!#py
     do p = begp,endp
        if (this%croplive_patch(p)) then ! relative to planting date
           ivt = veg_pp%itype(p)
@@ -629,11 +628,11 @@ contains
     end do
     call update_accum_field  ('GDDPLANT', rbufslp, nstep)
     call extract_accum_field ('GDDPLANT', this%gddplant_patch, nstep)
-
+!#py
     ! Accumulate and extract GDDTSOI
     ! In agroibis this variable is calculated
     ! to 0.05 m, so here we use the top two soil layers
-
+!#py
     do p = begp,endp
        if (this%croplive_patch(p)) then ! relative to planting date
           ivt = veg_pp%itype(p)
@@ -651,9 +650,9 @@ contains
     end do
     call update_accum_field  ('GDDTSOI', rbufslp, nstep)
     call extract_accum_field ('GDDTSOI', this%gddtsoi_patch, nstep)
-
+!#py
     deallocate(rbufslp)
-
+!#py
   end subroutine UpdateAccVars
 
   !-----------------------------------------------------------------------
@@ -699,7 +698,7 @@ contains
  !-----------------------------------------------------------------------
   subroutine checkDates( )
     !
-    ! !DESCRIPTION: 
+    ! !DESCRIPTION:
     ! Make sure the dates are compatible. The date given to startup the model
     ! and the date on the restart file must be the same although years can be
     ! different. The dates need to be checked when the restart file is being
@@ -751,4 +750,3 @@ contains
   end subroutine checkDates
 
 end module CropType
-

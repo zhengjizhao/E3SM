@@ -4,30 +4,29 @@ module SoilStateType
   ! !USES:
   use shr_kind_mod    , only : r8 => shr_kind_r8
   use shr_log_mod     , only : errMsg => shr_log_errMsg
-  use shr_infnan_mod  , only : nan => shr_infnan_nan, assignment(=)
   use decompMod       , only : bounds_type
   use abortutils      , only : endrun
   use spmdMod         , only : mpicom, MPI_INTEGER, masterproc
   use ncdio_pio       , only : file_desc_t, ncd_defvar, ncd_io, ncd_double, ncd_int, ncd_inqvdlen
   use ncdio_pio       , only : ncd_pio_openfile, ncd_inqfdims, ncd_pio_closefile, ncd_inqdid, ncd_inqdlen
-  use clm_varpar      , only : more_vertlayers, numpft, numrad 
+  use clm_varpar      , only : more_vertlayers, numpft, numrad
   use clm_varpar      , only : nlevsoi, nlevgrnd, nlevlak, nlevsoifl, nlayer, nlayert, nlevurb, nlevsno
-  use landunit_varcon , only : istice, istdlak, istwet, istsoil, istcrop, istice_mec
-  use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv 
   use clm_varcon      , only : zsoi, dzsoi, zisoi, spval
   use clm_varcon      , only : secspday, pc, mu, denh2o, denice, grlnd
+  use landunit_varcon , only : istice, istdlak, istwet, istsoil, istcrop, istice_mec
+  use column_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv
   use clm_varctl      , only : use_cn, use_lch4,use_dynroot, use_fates
   use clm_varctl      , only : use_erosion
   use clm_varctl      , only : use_var_soil_thick
   use clm_varctl      , only : iulog, fsurdat, hist_wrtch4diag
   use CH4varcon       , only : allowlakeprod
-  use LandunitType    , only : lun_pp                
-  use ColumnType      , only : col_pp                
-  use VegetationType  , only : veg_pp                
+  use LandunitType    , only : lun_pp
+  use ColumnType      , only : col_pp
+  use VegetationType  , only : veg_pp
   !
   implicit none
   save
-  private
+  public
   !
   ! !PUBLIC TYPES:
   type, public :: soilstate_type
@@ -44,13 +43,13 @@ module SoilStateType
      real(r8), pointer :: bd_col               (:,:) ! col bulk density of dry soil material [kg/m^3] (CN)
 
      ! hydraulic properties
-     real(r8), pointer :: hksat_col            (:,:) ! col hydraulic conductivity at saturation (mm H2O /s) 
+     real(r8), pointer :: hksat_col            (:,:) ! col hydraulic conductivity at saturation (mm H2O /s)
      real(r8), pointer :: hksat_min_col        (:,:) ! col mineral hydraulic conductivity at saturation (hksat) (mm/s)
      real(r8), pointer :: hk_l_col             (:,:) ! col hydraulic conductivity (mm/s)
      real(r8), pointer :: smp_l_col            (:,:) ! col soil matric potential (mm)
-     real(r8), pointer :: smpmin_col           (:)   ! col restriction for min of soil potential (mm) 
-     real(r8), pointer :: bsw_col              (:,:) ! col Clapp and Hornberger "b" (nlevgrnd)  
-     real(r8), pointer :: watsat_col           (:,:) ! col volumetric soil water at saturation (porosity) 
+     real(r8), pointer :: smpmin_col           (:)   ! col restriction for min of soil potential (mm)
+     real(r8), pointer :: bsw_col              (:,:) ! col Clapp and Hornberger "b" (nlevgrnd)
+     real(r8), pointer :: watsat_col           (:,:) ! col volumetric soil water at saturation (porosity)
      real(r8), pointer :: watdry_col           (:,:) ! col btran parameter for btran = 0
      real(r8), pointer :: watopt_col           (:,:) ! col btran parameter for btran = 1
      real(r8), pointer :: watfc_col            (:,:) ! col volumetric soil water at field capacity (nlevsoi)
@@ -59,24 +58,24 @@ module SoilStateType
      real(r8), pointer :: sucmin_col           (:,:) ! col minimum allowable soil liquid suction pressure (mm) [Note: sucmin_col is a negative value, while sucsat_col is a positive quantity]
      real(r8), pointer :: soilbeta_col         (:)   ! col factor that reduces ground evaporation L&P1992(-)
      real(r8), pointer :: soilalpha_col        (:)   ! col factor that reduces ground saturated specific humidity (-)
-     real(r8), pointer :: soilalpha_u_col      (:)   ! col urban factor that reduces ground saturated specific humidity (-) 
+     real(r8), pointer :: soilalpha_u_col      (:)   ! col urban factor that reduces ground saturated specific humidity (-)
      real(r8), pointer :: soilpsi_col          (:,:) ! col soil water potential in each soil layer (MPa) (CN)
      real(r8), pointer :: wtfact_col           (:)   ! col maximum saturated fraction for a gridcell
      real(r8), pointer :: porosity_col         (:,:) ! col soil porisity (1-bulk_density/soil_density) (VIC)
-     real(r8), pointer :: eff_porosity_col     (:,:) ! col effective porosity = porosity - vol_ice (nlevgrnd) 
+     real(r8), pointer :: eff_porosity_col     (:,:) ! col effective porosity = porosity - vol_ice (nlevgrnd)
      real(r8), pointer :: gwc_thr_col          (:)   ! col threshold soil moisture based on clay content
 
-     ! thermal conductivity / heat capacity
-     real(r8), pointer :: thk_col              (:,:) ! col thermal conductivity of each layer [W/m-K] 
-     real(r8), pointer :: tkmg_col             (:,:) ! col thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd) 
-     real(r8), pointer :: tkdry_col            (:,:) ! col thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd) 
-     real(r8), pointer :: tksatu_col           (:,:) ! col thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd) 
-     real(r8), pointer :: csol_col             (:,:) ! col heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd) 
+  !!!   ! thermal conductivity / heat capacity
+     real(r8), pointer :: thk_col              (:,:) ! col thermal conductivity of each layer [W/m-K]
+     real(r8), pointer :: tkmg_col             (:,:) ! col thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
+     real(r8), pointer :: tkdry_col            (:,:) ! col thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
+     real(r8), pointer :: tksatu_col           (:,:) ! col thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
+     real(r8), pointer :: csol_col             (:,:) ! col heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
 
-     ! roots
+  !!!   ! roots
      real(r8), pointer :: rootr_patch          (:,:) ! patch effective fraction of roots in each soil layer (nlevgrnd)
-     real(r8), pointer :: rootr_col            (:,:) ! col effective fraction of roots in each soil layer (nlevgrnd)  
-     real(r8), pointer :: rootfr_col           (:,:) ! col fraction of roots in each soil layer (nlevgrnd) 
+     real(r8), pointer :: rootr_col            (:,:) ! col effective fraction of roots in each soil layer (nlevgrnd)
+     real(r8), pointer :: rootfr_col           (:,:) ! col fraction of roots in each soil layer (nlevgrnd)
      real(r8), pointer :: rootfr_patch         (:,:) ! patch fraction of roots in each soil layer (nlevgrnd)
      real(r8), pointer :: rootr_road_perv_col  (:,:) ! col effective fraction of roots in each soil layer of urban pervious road
      real(r8), pointer :: rootfr_road_perv_col (:,:) ! col effective fraction of roots in each soil layer of urban pervious road
@@ -88,22 +87,22 @@ module SoilStateType
    contains
 
      procedure, public  :: Init
-     procedure, private :: InitAllocate
-     procedure, private :: InitHistory  
-     procedure, private :: InitCold    
+     procedure, public :: InitAllocate
+     procedure, private :: InitHistory
+     procedure, private :: InitCold
      procedure, public  :: Restart
      procedure, public  :: InitColdGhost
 
+
   end type soilstate_type
   !------------------------------------------------------------------------
-
 contains
 
   !------------------------------------------------------------------------
   subroutine Init(this, bounds)
 
     class(soilstate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
 
     call this%InitAllocate(bounds)
     call this%InitHistory(bounds)
@@ -119,7 +118,7 @@ contains
     !
     ! !ARGUMENTS:
     class(soilstate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begp, endp
@@ -133,55 +132,55 @@ contains
     begg     = bounds%begg    ; endg     = bounds%endg
     begc_all = bounds%begc_all; endc_all = bounds%endc_all
 
-    allocate(this%mss_frc_cly_vld_col  (begc:endc))                     ; this%mss_frc_cly_vld_col  (:)   = nan
-    allocate(this%sandfrac_patch       (begp:endp))                     ; this%sandfrac_patch       (:)   = nan
-    allocate(this%clayfrac_patch       (begp:endp))                     ; this%clayfrac_patch       (:)   = nan
-    allocate(this%grvlfrac_patch       (begp:endp))                     ; this%grvlfrac_patch       (:)   = nan
-    allocate(this%cellorg_col          (begc:endc,nlevgrnd))            ; this%cellorg_col          (:,:) = nan 
-    allocate(this%cellsand_col         (begc:endc,nlevgrnd))            ; this%cellsand_col         (:,:) = nan 
-    allocate(this%cellclay_col         (begc:endc,nlevgrnd))            ; this%cellclay_col         (:,:) = nan
-    allocate(this%cellgrvl_col         (begc:endc,nlevgrnd))            ; this%cellgrvl_col         (:,:) = nan 
-    allocate(this%bd_col               (begc:endc,nlevgrnd))            ; this%bd_col               (:,:) = nan
+    allocate(this%mss_frc_cly_vld_col  (begc:endc))                     ; this%mss_frc_cly_vld_col  (:)   = spval
+    allocate(this%sandfrac_patch       (begp:endp))                     ; this%sandfrac_patch       (:)   = spval
+    allocate(this%clayfrac_patch       (begp:endp))                     ; this%clayfrac_patch       (:)   = spval
+    allocate(this%grvlfrac_patch       (begp:endp))                     ; this%grvlfrac_patch       (:)   = spval
+    allocate(this%cellorg_col          (begc:endc,nlevgrnd))            ; this%cellorg_col          (:,:) = spval
+    allocate(this%cellsand_col         (begc:endc,nlevgrnd))            ; this%cellsand_col         (:,:) = spval
+    allocate(this%cellclay_col         (begc:endc,nlevgrnd))            ; this%cellclay_col         (:,:) = spval
+    allocate(this%cellgrvl_col         (begc:endc,nlevgrnd))            ; this%cellgrvl_col         (:,:) = spval
+    allocate(this%bd_col               (begc:endc,nlevgrnd))            ; this%bd_col               (:,:) = spval
 
     allocate(this%hksat_col            (begc_all:endc_all,nlevgrnd))    ; this%hksat_col            (:,:) = spval
     allocate(this%hksat_min_col        (begc:endc,nlevgrnd))            ; this%hksat_min_col        (:,:) = spval
-    allocate(this%hk_l_col             (begc:endc,nlevgrnd))            ; this%hk_l_col             (:,:) = nan   
-    allocate(this%smp_l_col            (begc:endc,nlevgrnd))            ; this%smp_l_col            (:,:) = nan   
-    allocate(this%smpmin_col           (begc:endc))                     ; this%smpmin_col           (:)   = nan
+    allocate(this%hk_l_col             (begc:endc,nlevgrnd))            ; this%hk_l_col             (:,:) = spval
+    allocate(this%smp_l_col            (begc:endc,nlevgrnd))            ; this%smp_l_col            (:,:) = spval
+    allocate(this%smpmin_col           (begc:endc))                     ; this%smpmin_col           (:)   = spval
 
-    allocate(this%bsw_col              (begc_all:endc_all,nlevgrnd))    ; this%bsw_col              (:,:) = nan
-    allocate(this%watsat_col           (begc_all:endc_all,nlevgrnd))    ; this%watsat_col           (:,:) = nan
+    allocate(this%bsw_col              (begc_all:endc_all,nlevgrnd))    ; this%bsw_col              (:,:) = spval
+    allocate(this%watsat_col           (begc_all:endc_all,nlevgrnd))    ; this%watsat_col           (:,:) = spval
     allocate(this%watdry_col           (begc:endc,nlevgrnd))            ; this%watdry_col           (:,:) = spval
     allocate(this%watopt_col           (begc:endc,nlevgrnd))            ; this%watopt_col           (:,:) = spval
-    allocate(this%watfc_col            (begc:endc,nlevgrnd))            ; this%watfc_col            (:,:) = nan
-    allocate(this%watmin_col           (begc:endc,nlevgrnd))            ; this%watmin_col           (:,:) = nan
+    allocate(this%watfc_col            (begc:endc,nlevgrnd))            ; this%watfc_col            (:,:) = spval
+    allocate(this%watmin_col           (begc:endc,nlevgrnd))            ; this%watmin_col           (:,:) = spval
     allocate(this%sucsat_col           (begc:endc,nlevgrnd))            ; this%sucsat_col           (:,:) = spval
     allocate(this%sucmin_col           (begc:endc,nlevgrnd))            ; this%sucmin_col           (:,:) = spval
-    allocate(this%soilbeta_col         (begc:endc))                     ; this%soilbeta_col         (:)   = nan   
-    allocate(this%soilalpha_col        (begc:endc))                     ; this%soilalpha_col        (:)   = nan
-    allocate(this%soilalpha_u_col      (begc:endc))                     ; this%soilalpha_u_col      (:)   = nan
-    allocate(this%soilpsi_col          (begc:endc,nlevgrnd))            ; this%soilpsi_col          (:,:) = nan
-    allocate(this%wtfact_col           (begc:endc))                     ; this%wtfact_col           (:)   = nan
+    allocate(this%soilbeta_col         (begc:endc))                     ; this%soilbeta_col         (:)   = spval
+    allocate(this%soilalpha_col        (begc:endc))                     ; this%soilalpha_col        (:)   = spval
+    allocate(this%soilalpha_u_col      (begc:endc))                     ; this%soilalpha_u_col      (:)   = spval
+    allocate(this%soilpsi_col          (begc:endc,nlevgrnd))            ; this%soilpsi_col          (:,:) = spval
+    allocate(this%wtfact_col           (begc:endc))                     ; this%wtfact_col           (:)   = spval
     allocate(this%porosity_col         (begc:endc,nlayer))              ; this%porosity_col         (:,:) = spval
     allocate(this%eff_porosity_col     (begc:endc,nlevgrnd))            ; this%eff_porosity_col     (:,:) = spval
-    allocate(this%gwc_thr_col          (begc:endc))                     ; this%gwc_thr_col          (:)   = nan
+    allocate(this%gwc_thr_col          (begc:endc))                     ; this%gwc_thr_col          (:)   = spval
 
-    allocate(this%thk_col              (begc:endc,-nlevsno+1:nlevgrnd)) ; this%thk_col              (:,:) = nan
-    allocate(this%tkmg_col             (begc:endc,nlevgrnd))            ; this%tkmg_col             (:,:) = nan
-    allocate(this%tkdry_col            (begc:endc,nlevgrnd))            ; this%tkdry_col            (:,:) = nan
-    allocate(this%tksatu_col           (begc:endc,nlevgrnd))            ; this%tksatu_col           (:,:) = nan
-    allocate(this%csol_col             (begc:endc,nlevgrnd))            ; this%csol_col             (:,:) = nan
+    allocate(this%thk_col              (begc:endc,-nlevsno+1:nlevgrnd)) ; this%thk_col              (:,:) = spval
+    allocate(this%tkmg_col             (begc:endc,nlevgrnd))            ; this%tkmg_col             (:,:) = spval
+    allocate(this%tkdry_col            (begc:endc,nlevgrnd))            ; this%tkdry_col            (:,:) = spval
+    allocate(this%tksatu_col           (begc:endc,nlevgrnd))            ; this%tksatu_col           (:,:) = spval
+    allocate(this%csol_col             (begc:endc,nlevgrnd))            ; this%csol_col             (:,:) = spval
 
-    allocate(this%rootr_patch          (begp:endp,1:nlevgrnd))          ; this%rootr_patch          (:,:) = nan
-    allocate(this%rootr_col            (begc:endc,nlevgrnd))            ; this%rootr_col            (:,:) = nan
-    allocate(this%rootr_road_perv_col  (begc:endc,1:nlevgrnd))          ; this%rootr_road_perv_col  (:,:) = nan
-    allocate(this%rootfr_patch         (begp:endp,1:nlevgrnd))          ; this%rootfr_patch         (:,:) = nan
-    allocate(this%rootfr_col           (begc:endc,1:nlevgrnd))          ; this%rootfr_col           (:,:) = nan 
-    allocate(this%rootfr_road_perv_col (begc:endc,1:nlevgrnd))          ; this%rootfr_road_perv_col (:,:) = nan
+    allocate(this%rootr_patch          (begp:endp,1:nlevgrnd))          ; this%rootr_patch          (:,:) = spval
+    allocate(this%rootr_col            (begc:endc,nlevgrnd))            ; this%rootr_col            (:,:) = spval
+    allocate(this%rootr_road_perv_col  (begc:endc,1:nlevgrnd))          ; this%rootr_road_perv_col  (:,:) = spval
+    allocate(this%rootfr_patch         (begp:endp,1:nlevgrnd))          ; this%rootfr_patch         (:,:) = spval
+    allocate(this%rootfr_col           (begc:endc,1:nlevgrnd))          ; this%rootfr_col           (:,:) = spval
+    allocate(this%rootfr_road_perv_col (begc:endc,1:nlevgrnd))          ; this%rootfr_road_perv_col (:,:) = spval
     allocate(this%root_depth_patch     (begp:endp))                     ; this%root_depth_patch     (:)   = spval
-    allocate(this%k_soil_root_patch    (begp:endp,1:nlevsoi))           ; this%k_soil_root_patch (:,:) = nan
-    allocate(this%root_conductance_patch(begp:endp,1:nlevsoi))          ; this%root_conductance_patch (:,:) = nan
-    allocate(this%soil_conductance_patch(begp:endp,1:nlevsoi))          ; this%soil_conductance_patch (:,:) = nan
+    allocate(this%k_soil_root_patch    (begp:endp,1:nlevsoi))           ; this%k_soil_root_patch (:,:) = spval
+    allocate(this%root_conductance_patch(begp:endp,1:nlevsoi))          ; this%root_conductance_patch (:,:) = spval
+    allocate(this%soil_conductance_patch(begp:endp,1:nlevsoi))          ; this%soil_conductance_patch (:,:) = spval
 
   end subroutine InitAllocate
 
@@ -195,7 +194,7 @@ contains
     !
     ! !ARGUMENTS:
     class(soilstate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
     integer :: begc, endc
@@ -222,7 +221,7 @@ contains
          ptr_col=this%smp_l_col, set_spec=spval, l2g_scale_type='veg', default=active)
 
     if (use_cn) then
-       this%bsw_col(begc:endc,:) = spval 
+       this%bsw_col(begc:endc,:) = spval
        call hist_addfld2d (fname='bsw', units='unitless', type2d='levgrnd', &
             avgflag='A', long_name='clap and hornberger B', &
             ptr_col=this%bsw_col, default='inactive')
@@ -247,7 +246,7 @@ contains
        call hist_addfld2d (fname='ROOTR_COLUMN', units='proportion', type2d='levgrnd', &
             avgflag='A', long_name='effective fraction of roots in each soil layer', &
             ptr_col=this%rootr_col, default='inactive')
-       
+
     end if
 
     if (use_dynroot) then
@@ -286,7 +285,7 @@ contains
          ptr_col=this%soilalpha_u_col, set_nourb=spval)
 
     if (use_cn) then
-       this%watsat_col(begc:endc,:) = spval 
+       this%watsat_col(begc:endc,:) = spval
        call hist_addfld2d (fname='watsat', units='m^3/m^3', type2d='levgrnd', &
             avgflag='A', long_name='water saturated', &
             ptr_col=this%watsat_col, default='inactive')
@@ -300,7 +299,7 @@ contains
     end if
 
     if (use_cn) then
-       this%watfc_col(begc:endc,:) = spval 
+       this%watfc_col(begc:endc,:) = spval
        call hist_addfld2d (fname='watfc', units='m^3/m^3', type2d='levgrnd', &
             avgflag='A', long_name='water field capacity', &
             ptr_col=this%watfc_col, default='inactive')
@@ -316,14 +315,14 @@ contains
     ! !USES:
     use pftvarcon           , only : noveg, roota_par, rootb_par
     use fileutils           , only : getfil
-    use organicFileMod      , only : organicrd 
+    use organicFileMod      , only : organicrd
     use SharedParamsMod   , only : ParamsShareInst
     use FuncPedotransferMod , only : pedotransf, get_ipedof
     use RootBiophysMod      , only : init_vegrootfr
     !
     ! !ARGUMENTS:
     class(soilstate_type) :: this
-    type(bounds_type), intent(in) :: bounds  
+    type(bounds_type), intent(in) :: bounds
     !
                                                         ! !LOCAL VARIABLES:
     integer            :: p, lev, c, l, g, j            ! indices
@@ -354,40 +353,40 @@ contains
     real(r8)           :: clay,sand,gravel              ! temporaries
     real(r8)           :: organic_max                   ! organic matter (kg/m3) where soil is assumed to act like peat
     integer            :: dimid                         ! dimension id
-    logical            :: readvar 
+    logical            :: readvar
     type(file_desc_t)  :: ncid                          ! netcdf id
-    real(r8) ,pointer  :: zsoifl (:)                    ! Output: [real(r8) (:)]  original soil midpoint 
-    real(r8) ,pointer  :: zisoifl (:)                   ! Output: [real(r8) (:)]  original soil interface depth 
-    real(r8) ,pointer  :: dzsoifl (:)                   ! Output: [real(r8) (:)]  original soil thickness 
-    real(r8) ,pointer  :: gti (:)                       ! read in - fmax 
+    real(r8) ,pointer  :: zsoifl (:)                    ! Output: [real(r8) (:)]  original soil midpoint
+    real(r8) ,pointer  :: zisoifl (:)                   ! Output: [real(r8) (:)]  original soil interface depth
+    real(r8) ,pointer  :: dzsoifl (:)                   ! Output: [real(r8) (:)]  original soil thickness
+    real(r8) ,pointer  :: gti (:)                       ! read in - fmax
     real(r8) ,pointer  :: sand3d (:,:)                  ! read in - soil texture: percent sand (needs to be a pointer for use in ncdio)
     real(r8) ,pointer  :: clay3d (:,:)                  ! read in - soil texture: percent clay (needs to be a pointer for use in ncdio)
     real(r8) ,pointer  :: grvl3d (:,:)                  ! read in - soil texture: percent gravel (needs to be a pointer for use in ncdio)
     real(r8) ,pointer  :: organic3d (:,:)               ! read in - organic matter: kg/m3 (needs to be a pointer for use in ncdio)
     character(len=256) :: locfn                         ! local filename
     integer            :: nlevbed                       ! # of layers above bedrock
-    integer            :: ipedof  
+    integer            :: ipedof
     integer            :: begc, endc
     integer            :: begg, endg
     real(r8), parameter :: min_liquid_pressure = -10132500._r8 ! Minimum soil liquid water pressure [mm]
     !-----------------------------------------------------------------------
-
+!#py
     begc = bounds%begc; endc= bounds%endc
     begg = bounds%begg; endg= bounds%endg
-
+!#py
     do c = bounds%begc, bounds%endc
        this%smpmin_col(c) = -1.e8_r8
     end do
-
+!#py
     ! --------------------------------------------------------------------
     ! Initialize root fraction (computing from surface, d is depth in meter):
     ! --------------------------------------------------------------------
-
+!#py
     ! Currently pervious road has same properties as soil
     do c = bounds%begc, bounds%endc
        l = col_pp%landunit(c)
-
-       if (lun_pp%urbpoi(l) .and. col_pp%itype(c) == icol_road_perv) then 
+!#py
+       if (lun_pp%urbpoi(l) .and. col_pp%itype(c) == icol_road_perv) then
           do lev = 1, nlevgrnd
              this%rootfr_road_perv_col(c,lev) = 0._r8
           enddo
@@ -396,7 +395,7 @@ contains
           end do
        end if
     end do
-
+!#py
     do c = bounds%begc,bounds%endc
        this%rootfr_col (c,nlevsoi+1:nlevgrnd) = 0._r8
        if (lun_pp%itype(l) == istsoil .or. lun_pp%itype(l) == istcrop) then
@@ -407,32 +406,32 @@ contains
           this%rootfr_col (c,:) = spval
        end if
     end do
-
-   ! Initialize root fraction 
-   
+!#py
+   ! Initialize root fraction
+!#py
    call init_vegrootfr(bounds, nlevsoi, nlevgrnd, &
         col_pp%nlevbed(bounds%begc:bounds%endc)    , &
         this%rootfr_patch(bounds%begp:bounds%endp,1:nlevgrnd))
-
+!#py
     ! --------------------------------------------------------------------
     ! dynamic memory allocation
     ! --------------------------------------------------------------------
-
+!#py
     allocate(sand3d(begg:endg,nlevsoifl))
     allocate(clay3d(begg:endg,nlevsoifl))
     allocate(grvl3d(begg:endg,nlevsoifl))
-
+!#py
     ! --------------------------------------------------------------------
     ! Read surface dataset
     ! --------------------------------------------------------------------
-
+!#py
     if (masterproc) then
        write(iulog,*) 'Attempting to read soil color, sand and clay boundary data .....'
     end if
-
+!#py
     call getfil (fsurdat, locfn, 0)
     call ncd_pio_openfile (ncid, locfn, 0)
-
+!#py
     call ncd_inqdlen(ncid,dimid,nlevsoifl,name='nlevsoi')
     if ( .not. more_vertlayers )then
        if ( nlevsoifl /= nlevsoi )then
@@ -442,26 +441,26 @@ contains
     else
        ! read in layers, interpolate to high resolution grid later
     end if
-
-    ! Read in organic matter dataset 
-
+!#py
+    ! Read in organic matter dataset
+!#py
     organic_max = ParamsShareInst%organic_max
-
+!#py
     allocate(organic3d(bounds%begg:bounds%endg,nlevsoifl))
     call organicrd(organic3d)
-
+!#py
     ! Read in sand, clay, gravel data
-
+!#py
     call ncd_io(ncid=ncid, varname='PCT_SAND', flag='read', data=sand3d, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
-       call endrun(msg=' ERROR: PCT_SAND NOT on surfdata file'//errMsg(__FILE__, __LINE__)) 
+       call endrun(msg=' ERROR: PCT_SAND NOT on surfdata file'//errMsg(__FILE__, __LINE__))
     end if
-
+!#py
     call ncd_io(ncid=ncid, varname='PCT_CLAY', flag='read', data=clay3d, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
-       call endrun(msg=' ERROR: PCT_CLAY NOT on surfdata file'//errMsg(__FILE__, __LINE__)) 
+       call endrun(msg=' ERROR: PCT_CLAY NOT on surfdata file'//errMsg(__FILE__, __LINE__))
     end if
-
+!#py
     if (use_erosion) then
        call ncd_io(ncid=ncid, varname='PCT_GRVL', flag='read', data=grvl3d, dim1name=grlnd, readvar=readvar)
        if (.not. readvar) then
@@ -470,81 +469,81 @@ contains
     else
        grvl3d(:,:) = 0._r8
     end if
-
+!#py
     do p = bounds%begp,bounds%endp
        g = veg_pp%gridcell(p)
        if ( sand3d(g,1)+clay3d(g,1) == 0.0_r8 )then
           if ( any( sand3d(g,:)+clay3d(g,:) /= 0.0_r8 ) )then
              call endrun(msg='found depth points that do NOT sum to zero when surface does'//&
-                  errMsg(__FILE__, __LINE__)) 
+                  errMsg(__FILE__, __LINE__))
           end if
           sand3d(g,:) = 1.0_r8
           clay3d(g,:) = 1.0_r8
        end if
        if ( any( sand3d(g,:)+clay3d(g,:) == 0.0_r8 ) )then
-          call endrun(msg='after setting, found points sum to zero'//errMsg(__FILE__, __LINE__)) 
+          call endrun(msg='after setting, found points sum to zero'//errMsg(__FILE__, __LINE__))
        end if
-
+!#py
        this%sandfrac_patch(p) = sand3d(g,1)/100.0_r8
        this%clayfrac_patch(p) = clay3d(g,1)/100.0_r8
        this%grvlfrac_patch(p) = grvl3d(g,1)/100.0_r8
     end do
-
+!#py
     ! Read fmax
-
+!#py
     allocate(gti(bounds%begg:bounds%endg))
     call ncd_io(ncid=ncid, varname='FMAX', flag='read', data=gti, dim1name=grlnd, readvar=readvar)
     if (.not. readvar) then
-       call endrun(msg=' ERROR: FMAX NOT on surfdata file'//errMsg(__FILE__, __LINE__)) 
+       call endrun(msg=' ERROR: FMAX NOT on surfdata file'//errMsg(__FILE__, __LINE__))
     end if
     do c = bounds%begc, bounds%endc
        g = col_pp%gridcell(c)
        this%wtfact_col(c) = gti(g)
     end do
     deallocate(gti)
-
+!#py
     ! Close file
-
+!#py
     call ncd_pio_closefile(ncid)
-
+!#py
     ! --------------------------------------------------------------------
     ! get original soil depths to be used in interpolation of sand and clay
     ! --------------------------------------------------------------------
-
+!#py
     allocate(zsoifl(1:nlevsoifl), zisoifl(0:nlevsoifl), dzsoifl(1:nlevsoifl))
     do j = 1, nlevsoifl
        zsoifl(j) = 0.025*(exp(0.5_r8*(j-0.5_r8))-1._r8)    !node depths
     enddo
-
+!#py
     dzsoifl(1) = 0.5_r8*(zsoifl(1)+zsoifl(2))             !thickness b/n two interfaces
     do j = 2,nlevsoifl-1
        dzsoifl(j)= 0.5_r8*(zsoifl(j+1)-zsoifl(j-1))
     enddo
     dzsoifl(nlevsoifl) = zsoifl(nlevsoifl)-zsoifl(nlevsoifl-1)
-
+!#py
     zisoifl(0) = 0._r8
     do j = 1, nlevsoifl-1
        zisoifl(j) = 0.5_r8*(zsoifl(j)+zsoifl(j+1))         !interface depths
     enddo
     zisoifl(nlevsoifl) = zsoifl(nlevsoifl) + 0.5_r8*dzsoifl(nlevsoifl)
-
+!#py
     ! --------------------------------------------------------------------
     ! Set soil hydraulic and thermal properties: non-lake
     ! --------------------------------------------------------------------
-
-    !   urban roof, sunwall and shadewall thermal properties used to 
-    !   derive thermal conductivity and heat capacity are set to special 
-    !   value because thermal conductivity and heat capacity for urban 
-    !   roof, sunwall and shadewall are prescribed in SoilThermProp.F90 
+!#py
+    !   urban roof, sunwall and shadewall thermal properties used to
+    !   derive thermal conductivity and heat capacity are set to special
+    !   value because thermal conductivity and heat capacity for urban
+    !   roof, sunwall and shadewall are prescribed in SoilThermProp.F90
     !   in SoilPhysicsMod.F90
-
-
+!#py
+!#py
     do c = bounds%begc, bounds%endc
        g = col_pp%gridcell(c)
        l = col_pp%landunit(c)
-
+!#py
        if (lun_pp%itype(l)==istwet .or. lun_pp%itype(l)==istice .or. lun_pp%itype(l)==istice_mec) then
-
+!#py
           do lev = 1,nlevgrnd
              this%bsw_col(c,lev)    = spval
              this%watsat_col(c,lev) = spval
@@ -553,9 +552,9 @@ contains
              this%hksat_col(c,lev)  = spval
              this%sucsat_col(c,lev) = spval
              this%sucmin_col(c,lev) = spval
-             this%watdry_col(c,lev) = spval 
-             this%watopt_col(c,lev) = spval 
-             this%bd_col(c,lev)     = spval 
+             this%watdry_col(c,lev) = spval
+             this%watopt_col(c,lev) = spval
+             this%bd_col(c,lev)     = spval
              if (lev <= nlevsoi) then
                 this%cellsand_col(c,lev) = spval
                 this%cellclay_col(c,lev) = spval
@@ -563,7 +562,7 @@ contains
                 this%cellorg_col(c,lev)  = spval
              end if
           end do
-
+!#py
           do lev = 1,nlevgrnd
              this%tkmg_col(c,lev)   = spval
              this%tksatu_col(c,lev) = spval
@@ -574,9 +573,9 @@ contains
                 this%csol_col(c,lev)= spval
              endif
           end do
-
+!#py
        else if (lun_pp%urbpoi(l) .and. (col_pp%itype(c) /= icol_road_perv) .and. (col_pp%itype(c) /= icol_road_imperv) )then
-
+!#py
           ! Urban Roof, sunwall, shadewall properties set to special value
           do lev = 1,nlevgrnd
              this%watsat_col(c,lev) = spval
@@ -586,9 +585,9 @@ contains
              this%hksat_col(c,lev)  = spval
              this%sucsat_col(c,lev) = spval
              this%sucmin_col(c,lev) = spval
-             this%watdry_col(c,lev) = spval 
-             this%watopt_col(c,lev) = spval 
-             this%bd_col(c,lev) = spval 
+             this%watdry_col(c,lev) = spval
+             this%watopt_col(c,lev) = spval
+             this%bd_col(c,lev) = spval
              if (lev <= nlevsoi) then
                 this%cellsand_col(c,lev) = spval
                 this%cellclay_col(c,lev) = spval
@@ -596,33 +595,33 @@ contains
                 this%cellorg_col(c,lev)  = spval
              end if
           end do
-
+!#py
           do lev = 1,nlevgrnd
              this%tkmg_col(c,lev)   = spval
              this%tksatu_col(c,lev) = spval
              this%tkdry_col(c,lev)  = spval
              this%csol_col(c,lev)   = spval
           end do
-
+!#py
        else
-
+!#py
           do lev = 1,nlevgrnd
              ! Number of soil layers in hydrologically active columns = NLEV2BED
 	     nlevbed = col_pp%nlevbed(c)
              if ( more_vertlayers )then ! duplicate clay and sand values from last soil layer
-
+!#py
                 if (lev .eq. 1) then
                    clay = clay3d(g,1)
                    sand = sand3d(g,1)
                    gravel = grvl3d(g,1)
-                   om_frac = organic3d(g,1)/organic_max 
+                   om_frac = organic3d(g,1)/organic_max
                 else if (lev <= nlevsoi) then
                    do j = 1,nlevsoifl-1
                       if (zisoi(lev) >= zisoifl(j) .AND. zisoi(lev) < zisoifl(j+1)) then
                          clay = clay3d(g,j+1)
                          sand = sand3d(g,j+1)
                          gravel = grvl3d(g,j+1)
-                         om_frac = organic3d(g,j+1)/organic_max    
+                         om_frac = organic3d(g,j+1)/organic_max
                       endif
                    end do
                 else
@@ -644,52 +643,52 @@ contains
                    om_frac = 0._r8
                 endif
              end if
-
+!#py
              if (lun_pp%itype(l) == istdlak) then
-
+!#py
                 if (lev <= nlevsoi) then
                    this%cellsand_col(c,lev) = sand
                    this%cellclay_col(c,lev) = clay
                    this%cellgrvl_col(c,lev) = gravel
                    this%cellorg_col(c,lev)  = om_frac*organic_max
                 end if
-
+!#py
              else if (lun_pp%itype(l) /= istdlak) then  ! soil columns of both urban and non-urban types
-
+!#py
                 if (lun_pp%urbpoi(l)) then
                    om_frac = 0._r8 ! No organic matter for urban
                 end if
-
+!#py
                 if (lev <= nlevbed) then
                    this%cellsand_col(c,lev) = sand
                    this%cellclay_col(c,lev) = clay
                    this%cellgrvl_col(c,lev) = gravel
                    this%cellorg_col(c,lev)  = om_frac*organic_max
                 end if
-
-                ! Note that the following properties are overwritten for urban impervious road 
+!#py
+                ! Note that the following properties are overwritten for urban impervious road
                 ! layers that are not soil in SoilThermProp.F90 within SoilTemperatureMod.F90
-
+!#py
                 !determine the type of pedotransfer function to be used based on soil order
                 !I will use the following implementation to further explore the ET problem, now
                 !I set soil order to 0 for all soils. Jinyun Tang, Mar 20, 2014
-
+!#py
                 ipedof=get_ipedof(0)
                 call pedotransf(ipedof, sand, clay, &
                      this%watsat_col(c,lev), this%bsw_col(c,lev), this%sucsat_col(c,lev), xksat)
-
+!#py
                 om_watsat         = max(0.93_r8 - 0.1_r8   *(zsoi(lev)/zsapric), 0.83_r8)
                 om_b              = min(2.7_r8  + 9.3_r8   *(zsoi(lev)/zsapric), 12.0_r8)
                 om_sucsat         = min(10.3_r8 - 0.2_r8   *(zsoi(lev)/zsapric), 10.1_r8)
                 om_hksat          = max(0.28_r8 - 0.2799_r8*(zsoi(lev)/zsapric), 0.0001_r8)
-
-                this%bd_col(c,lev)        = (1._r8 - this%watsat_col(c,lev))*2.7e3_r8 
+!#py
+                this%bd_col(c,lev)        = (1._r8 - this%watsat_col(c,lev))*2.7e3_r8
                 this%watsat_col(c,lev)    = (1._r8 - om_frac) * this%watsat_col(c,lev) + om_watsat*om_frac
                 tkm                       = (1._r8-om_frac) * (8.80_r8*sand+2.92_r8*clay)/(sand+clay)+om_tkm*om_frac ! W/(m K)
-                this%bsw_col(c,lev)       = (1._r8-om_frac) * (2.91_r8 + 0.159_r8*clay) + om_frac*om_b   
-                this%sucsat_col(c,lev)    = (1._r8-om_frac) * this%sucsat_col(c,lev) + om_sucsat*om_frac  
+                this%bsw_col(c,lev)       = (1._r8-om_frac) * (2.91_r8 + 0.159_r8*clay) + om_frac*om_b
+                this%sucsat_col(c,lev)    = (1._r8-om_frac) * this%sucsat_col(c,lev) + om_sucsat*om_frac
                 this%hksat_min_col(c,lev) = xksat
-
+!#py
                 ! perc_frac is zero unless perf_frac greater than percolation threshold
                 if (om_frac > pcalpha) then
                    perc_norm=(1._r8 - pcalpha)**(-pcbeta)
@@ -697,10 +696,10 @@ contains
                 else
                    perc_frac=0._r8
                 endif
-
+!#py
                 ! uncon_frac is fraction of mineral soil plus fraction of "nonpercolating" organic soil
                 uncon_frac=(1._r8-om_frac)+(1._r8-perc_frac)*om_frac
-
+!#py
                 ! uncon_hksat is series addition of mineral/organic conductivites
                 if (om_frac < 1._r8) then
                    uncon_hksat=uncon_frac/((1._r8-om_frac)/xksat &
@@ -709,64 +708,64 @@ contains
                    uncon_hksat = 0._r8
                 end if
                 this%hksat_col(c,lev)  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
-
-                this%tkmg_col(c,lev)   = tkm ** (1._r8- this%watsat_col(c,lev))           
-
+!#py
+                this%tkmg_col(c,lev)   = tkm ** (1._r8- this%watsat_col(c,lev))
+!#py
                 this%tksatu_col(c,lev) = this%tkmg_col(c,lev)*0.57_r8**this%watsat_col(c,lev)
-
+!#py
                 this%tkdry_col(c,lev)  = ((0.135_r8*this%bd_col(c,lev) + 64.7_r8) / &
-                     (2.7e3_r8 - 0.947_r8*this%bd_col(c,lev)))*(1._r8-om_frac) + om_tkd*om_frac  
-
+                     (2.7e3_r8 - 0.947_r8*this%bd_col(c,lev)))*(1._r8-om_frac) + om_tkd*om_frac
+!#py
                 this%csol_col(c,lev)   = ((1._r8-om_frac)*(2.128_r8*sand+2.385_r8*clay) / (sand+clay) + &
                      om_csol*om_frac)*1.e6_r8  ! J/(m3 K)
-
+!#py
                 if (lev > nlevbed) then
                    this%csol_col(c,lev) = csol_bedrock
                 endif
-
+!#py
                 this%watdry_col(c,lev) = this%watsat_col(c,lev) * &
-                     (316230._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev)) 
+                     (316230._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev))
                 this%watopt_col(c,lev) = this%watsat_col(c,lev) * &
-                     (158490._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev)) 
-
+                     (158490._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev))
+!#py
                 !! added by K.Sakaguchi for beta from Lee and Pielke, 1992
                 ! water content at field capacity, defined as hk = 0.1 mm/day
                 ! used eqn (7.70) in CLM3 technote with k = 0.1 (mm/day) / secspday (day/sec)
                 this%watfc_col(c,lev) = this%watsat_col(c,lev) * &
                      (0.1_r8 / (this%hksat_col(c,lev)*secspday))**(1._r8/(2._r8*this%bsw_col(c,lev)+3._r8))
-
+!#py
                 this%sucmin_col(c,lev) = min_liquid_pressure
-
+!#py
                 this%watmin_col(c,lev) = &
                      this%watsat_col(c,lev)*(-min_liquid_pressure/this%sucsat_col(c,lev))**(-1._r8/this%bsw_col(c,lev))
-
+!#py
              end if
           end do
-
+!#py
           ! Urban pervious and impervious road
           if (col_pp%itype(c) == icol_road_imperv) then
              ! Impervious road layers -- same as above except set watdry and watopt as missing
              do lev = 1,nlevgrnd
-                this%watdry_col(c,lev) = spval 
-                this%watopt_col(c,lev) = spval 
+                this%watdry_col(c,lev) = spval
+                this%watopt_col(c,lev) = spval
              end do
-          else if (col_pp%itype(c) == icol_road_perv) then 
+          else if (col_pp%itype(c) == icol_road_perv) then
              ! pervious road layers  - set in UrbanInitTimeConst
           end if
-
+!#py
        end if
     end do
-
+!#py
     ! --------------------------------------------------------------------
     ! Set soil hydraulic and thermal properties: lake
     ! --------------------------------------------------------------------
-
+!#py
     do c = bounds%begc, bounds%endc
        g = col_pp%gridcell(c)
        l = col_pp%landunit(c)
-
+!#py
        if (lun_pp%itype(l)==istdlak) then
-
+!#py
           do lev = 1,nlevgrnd
              if ( lev <= nlevsoi )then
                 clay    =  this%cellclay_col(c,lev)
@@ -779,7 +778,7 @@ contains
                 gravel  = this%cellgrvl_col(c,nlevsoi)
                 om_frac = 0.0_r8
              end if
-
+!#py
              this%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*sand
              this%bsw_col(c,lev)    = 2.91 + 0.159*clay
              this%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )
@@ -789,7 +788,7 @@ contains
              this%bsw_col(c,lev)    = (1._r8-om_frac)*(2.91_r8 + 0.159_r8*clay) + om_frac * om_b_lake
              this%sucsat_col(c,lev) = (1._r8-om_frac)*this%sucsat_col(c,lev) + om_sucsat_lake * om_frac
              xksat                  = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
-
+!#py
              ! perc_frac is zero unless perf_frac greater than percolation threshold
              if (om_frac > pc_lake) then
                 perc_norm = (1._r8 - pc_lake)**(-pcbeta)
@@ -797,10 +796,10 @@ contains
              else
                 perc_frac = 0._r8
              endif
-
+!#py
              ! uncon_frac is fraction of mineral soil plus fraction of "nonpercolating" organic soil
              uncon_frac = (1._r8-om_frac) + (1._r8-perc_frac)*om_frac
-
+!#py
              ! uncon_hksat is series addition of mineral/organic conductivites
              if (om_frac < 1._r8) then
                 xksat = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
@@ -808,7 +807,7 @@ contains
              else
                 uncon_hksat = 0._r8
              end if
-
+!#py
              this%hksat_col(c,lev)  = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat_lake
              this%tkmg_col(c,lev)   = tkm ** (1._r8- this%watsat_col(c,lev))
              this%tksatu_col(c,lev) = this%tkmg_col(c,lev)*0.57_r8**this%watsat_col(c,lev)
@@ -819,10 +818,10 @@ contains
              if (lev > nlevsoi) then
                 this%csol_col(c,lev) = csol_bedrock
              endif
-
+!#py
              this%watdry_col(c,lev) = this%watsat_col(c,lev) * (316230._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev))
              this%watopt_col(c,lev) = this%watsat_col(c,lev) * (158490._r8/this%sucsat_col(c,lev)) ** (-1._r8/this%bsw_col(c,lev))
-
+!#py
              !! added by K.Sakaguchi for beta from Lee and Pielke, 1992
              ! water content at field capacity, defined as hk = 0.1 mm/day
              ! used eqn (7.70) in CLM3 technote with k = 0.1 (mm/day) / (# seconds/day)
@@ -830,27 +829,27 @@ contains
                                (this%hksat_col(c,lev)*secspday))**(1._r8/(2._r8*this%bsw_col(c,lev)+3._r8))
           end do
        endif
-
+!#py
     end do
-
+!#py
     ! --------------------------------------------------------------------
     ! Initialize threshold soil moisture and mass fracion of clay limited to 0.20
     ! --------------------------------------------------------------------
-
+!#py
     do c = bounds%begc, bounds%endc
        g = col_pp%gridcell(c)
-
+!#py
        this%gwc_thr_col(c) = 0.17_r8 + 0.14_r8 * clay3d(g,1) * 0.01_r8
        this%mss_frc_cly_vld_col(c) = min(clay3d(g,1) * 0.01_r8, 0.20_r8)
     end do
-
+!#py
     ! --------------------------------------------------------------------
     ! Deallocate memory
     ! --------------------------------------------------------------------
-
+!#py
     deallocate(sand3d, clay3d, grvl3d, organic3d)
     deallocate(zisoifl, zsoifl, dzsoifl)
-
+!#py
   end subroutine InitCold
 
   !------------------------------------------------------------------------
@@ -881,7 +880,7 @@ contains
             dim1name='column', dim2name='levgrnd', switchdim=.true., &
             long_name='soil matric potential', units='mm', &
             interpinic_flag='interp', readvar=readvar, data=this%smp_l_col)
-
+!#py
        call restartvar(ncid=ncid, flag=flag, varname='HK', xtype=ncd_double,  &
             dim1name='column', dim2name='levgrnd', switchdim=.true., &
             long_name='hydraulic conductivity', units='mm/s', &
@@ -892,7 +891,7 @@ contains
             dim1name='pft', &
             long_name='root depth', units='m', &
             interpinic_flag='interp', readvar=readvar, data=this%root_depth_patch)
-
+!#py
        call restartvar(ncid=ncid, flag=flag, varname='rootfr', xtype=ncd_double,  &
             dim1name='pft', dim2name='levgrnd', switchdim=.true., &
             long_name='root fraction', units='', &
@@ -937,42 +936,42 @@ contains
     real(r8) , parameter:: FILL_VALUE = -999999.d0 ! temporary
     real(r8) , pointer  :: data_send_col(:)        ! data sent by local mpi rank
     real(r8) , pointer  :: data_recv_col(:)        ! data received by local mpi rank
-
+!#py
     ! Number of values per soil column
     nvals_col = 4*nlevgrnd ! (watsat + hksat + bsw + sucsat) * nlevgrnd
-
+!#py
     ! Allocate value
     allocate(data_send_col((bounds_proc%endc     - bounds_proc%begc     + 1)*nvals_col))
     allocate(data_recv_col((bounds_proc%endc_all - bounds_proc%begc_all + 1)*nvals_col))
-
+!#py
     ! Assemble the data to send
     do c = bounds_proc%begc, bounds_proc%endc
-
+!#py
        beg_idx = (c - bounds_proc%begc)*nvals_col
-
+!#py
        do j = 1, nlevgrnd
-
+!#py
           beg_idx = beg_idx + 1
           if (.not. isnan(this%watsat_col(c,j)) .and. this%watsat_col(c,j) /= spval) then
              data_send_col(beg_idx) = this%watsat_col(c,j)
           else
              data_send_col(beg_idx) = FILL_VALUE
           endif
-
+!#py
           beg_idx = beg_idx + 1
           if (.not. isnan(this%hksat_col(c,j)) .and. this%hksat_col(c,j) /= spval) then
              data_send_col(beg_idx) = this%hksat_col(c,j)
           else
              data_send_col(beg_idx) = FILL_VALUE
           endif
-
+!#py
           beg_idx = beg_idx + 1
           if (.not. isnan(this%bsw_col(c,j)) .and. this%bsw_col(c,j) /= spval) then
              data_send_col(beg_idx) = this%bsw_col(c,j)
           else
              data_send_col(beg_idx) = FILL_VALUE
           endif
-
+!#py
           beg_idx = beg_idx + 1
           if (.not. isnan(this%sucsat_col(c,j)) .and. this%sucsat_col(c,j) /= spval) then
              data_send_col(beg_idx) = this%sucsat_col(c,j)
@@ -981,32 +980,32 @@ contains
           endif
        enddo
     enddo
-
+!#py
     ! Send the data
     call ExchangeColumnLevelGhostData(bounds_proc, nvals_col, data_send_col, data_recv_col)
-
+!#py
     ! Assign data corresponding to ghost/halo soil columns
     do c = bounds_proc%endc + 1, bounds_proc%endc_all
        beg_idx = (c - bounds_proc%begc)*nvals_col
        do j = 1, nlevgrnd
           beg_idx = beg_idx + 1
           this%watsat_col(c,j) = data_recv_col(beg_idx)
-
+!#py
           beg_idx = beg_idx + 1
           this%hksat_col(c,j) = data_recv_col(beg_idx)
-
+!#py
           beg_idx = beg_idx + 1
           this%bsw_col(c,j) = data_recv_col(beg_idx)
-
+!#py
           beg_idx = beg_idx + 1
           this%sucsat_col(c,j) = data_recv_col(beg_idx)
        enddo
     enddo
-
+!#py
     ! Free up memory
     deallocate(data_send_col)
     deallocate(data_recv_col)
-
+!#py
   end subroutine InitColdGhost
 
 #else
@@ -1033,5 +1032,6 @@ contains
 
 #endif
   !------------------------------------------------------------------------
+
 
 end module SoilStateType
