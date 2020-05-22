@@ -176,7 +176,6 @@ contains
     ! pflotran:end-----------------------------
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 !-----------------------------------------------------------------------
-    print *, "in surfrdMod"
     if (masterproc) then
        if (filename == ' ') then
           write(iulog,*) trim(subname),' ERROR: filename must be specified '
@@ -192,7 +191,7 @@ contains
     
     ! pflotran:beg-----------------------------------------------
     call ncd_inqdlen(ncid, dimid, nv, 'nv')
-    if(not(associated(ldomain%nv))) then
+    if(.not. associated(ldomain%nv)) then
          print *, "allocating ldomain%nv in surfrdMod",nv
          allocate(ldomain%nv)
     end if 
@@ -626,7 +625,7 @@ contains
     end if
 
     call ncd_inqfdims(ncid, isgrid2d, ni, nj, ns)
-    if(not(associated(surfdata_domain%nv) ) ) allocate(surfdata_domain%nv)
+    if( .not. associated(surfdata_domain%nv) ) allocate(surfdata_domain%nv)
 
     surfdata_domain%nv = 0   ! must be initialized to 0 here prior to call 'domain_init'
     call domain_init(surfdata_domain, isgrid2d, ni, nj, begg, endg, clmlevel=grlnd)

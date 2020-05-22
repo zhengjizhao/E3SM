@@ -68,10 +68,8 @@ contains
     implicit none
     integer :: size1,size2,t,f
     ! ---- subroutine to store tape data into type for gpu
-    print *, "allocating gpu ",ntapes,"tapes"
     allocate(tape_gpu(ntapes))
     do t = 1, ntapes
-      print *, "allocating hlist with ",tape(t)%nflds,"fields"
       allocate(tape_gpu(t)%hlist(tape(t)%nflds))
       allocate(tape_gpu(t)%nflds )
       allocate(tape_gpu(t)%ntimes)
@@ -198,7 +196,6 @@ contains
     end do
     
     if(inc == 0) then
-        print *, "transfering tape to cpu:"
         call transfer_tape_to_cpu()
     endif
   end subroutine hist_update_hbuf_gpu
@@ -708,7 +705,7 @@ end subroutine hist_update_hbuf_field_1d_gpu
     end if
 
     if (field_allocated) then
-       deallocate(field)
+       !deallocate(field)  ! gfortran says it's an error -- 'field' NOT an allocable
     end if
   end associate
   end subroutine hist_update_hbuf_field_2d_gpu
@@ -802,11 +799,9 @@ end subroutine hist_update_hbuf_field_1d_gpu
     implicit none
     integer :: size1,size2,t,f
 
-    print *, "updating tape_gpu on cpu:"
     !$acc update self(tape_gpu)
 
     !loop is done on cpu --- could accelerate using openACC cpu threading?
-    print *, "update tape on cpu"
     do t = 1, ntapes
       do f = 1, tape_gpu(t)%nflds
         tape(t)%hlist(f)%hbuf(:,:) = tape_gpu(t)%hlist(f)%hbuf(:,:)
@@ -823,10 +818,8 @@ end subroutine hist_update_hbuf_field_1d_gpu
           integer  :: t 
           integer :: f
 
-          print *,  "adjusting gpu tape after normalization/zeroing"
           do t = 1 , ntapes
               if(tape(t)%is_endhist) then 
-                print *, "true for tape:",t
                 do f = 1, tape_gpu(t)%nflds 
                         tape_gpu(t)%hlist(f)%hbuf(:,:) = 0d0 
                         tape_gpu(t)%hlist(f)%nacs(:,:) = 0

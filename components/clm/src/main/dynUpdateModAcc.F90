@@ -361,7 +361,7 @@ contains
   end subroutine update_column_state_with_optional_fractions_acc
 
   !-----------------------------------------------------------------------
-  function old_weight_was_zeroAcc(patch_state_updater, bounds)
+  function old_weight_was_zeroAcc(patch_state_updater, bounds) result(old_weight_was_zero)
     !
     ! !DESCRIPTION:
     ! Returns a patch-level logical array that is true wherever the patch weight was zero
@@ -385,7 +385,7 @@ contains
   end function old_weight_was_zeroAcc
 
   !-----------------------------------------------------------------------
-  function patch_grewAcc(patch_state_updater, bounds)
+  function patch_grewAcc(patch_state_updater, bounds) result(patch_grew)
     !
     ! !DESCRIPTION:
     ! Returns a patch-level logical array that is true wherever the patch grew in this

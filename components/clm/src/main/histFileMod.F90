@@ -1076,8 +1076,9 @@ contains
 
 
 
-    print *, tape(t)%hlist(f)%field%name
-    print *, "hpindex:",hpindex,field(1)
+    !write(101, *) tape(t)%hlist(f)%field%name ! for testing
+    !write(101, *) "hpindex:",hpindex,field(1) ! for testing
+
     ! set variables to check weights when allocate all pfts
 
     map2gcell = .false.

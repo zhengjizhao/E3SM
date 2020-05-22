@@ -208,17 +208,13 @@ contains
     do nc = 1, nclumps
        call get_clump_bounds_gpu(nc, bounds_clump)
 
-       print *, "dynhwcontent_init"
        call dyn_hwcontent_init(bounds_clump, &
             filter(nc)%num_nolakec, filter(nc)%nolakec, &
             filter(nc)%num_lakec, filter(nc)%lakec, &
             urbanparams_vars, soilstate_vars, soilhydrology_vars, lakestate_vars, &
             energyflux_vars)
-       print *, "set_prior_weights"
        call set_prior_weights_acc(prior_weights, bounds_clump)
-       print *, "patch_state_updater"
        call patch_state_set_old_weights_acc  (patch_state_updater,bounds_clump)
-       print *, "col_state_old_weights"
        call column_state_set_old_weights_acc(column_state_updater,bounds_clump)
     end do
 
@@ -257,11 +253,8 @@ contains
        ! actually changed some weights in this time step. This is also required in the
        ! first time step of the run to update filters to reflect state of CISM
        ! (particularly mask that is past through coupler).
-       print *, "wrapup weight changes"
        call dynSubgrid_wrapup_weight_changes(bounds_clump, glc2lnd_vars)
-       print *,"new_weights,patch"
        call patch_set_new_weightsAcc (patch_state_updater ,bounds_clump)
-       print *, "column set new weights"
        call column_set_new_weightsAcc(column_state_updater,bounds_clump, nc)
 
        call set_subgrid_diagnostic_fields(bounds_clump)
@@ -325,17 +318,14 @@ contains
     ! !LOCAL VARIABLES:
 
     !-----------------------------------------------------------------------
-    print *, "in weights:",bounds_clump%begt,bounds_clump%endt
 
     call update_landunit_weights(bounds_clump)
-    print *, "computes:"
     call compute_higher_order_weights(bounds_clump)
 
     ! Here: filters are re-made
     !
     ! This call requires clump-level bounds, which is why we need to ensure that the
     ! argument to this routine is clump-level bounds
-    print *, "reweight:"
     call reweight_wrapup(bounds_clump, &
             glc2lnd_vars%icemask_grc)
 

@@ -78,7 +78,6 @@ contains
 
       ! on a set annual timestep, update annual maxima
       ! make this 1 January for NH columns, 1 July for SH columns
-      print *, "active LAYER:", mon,day, sec, dtime
       if ( (mon .eq. 1) .and. (day .eq. 1) .and. ( sec / int(dtime) .eq. 1) ) then
          do fc = 1,num_soilc
             c = filter_soilc(fc)

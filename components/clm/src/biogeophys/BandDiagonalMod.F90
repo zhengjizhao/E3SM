@@ -187,18 +187,17 @@ contains
 
        ! on input result is rhs, on output result is solution vector
        result(:)=r(ci,jtop(ci):jbot(ci))
-        #ifdef _OPENACC
+#ifdef _OPENACC
           call dgbsv_oacc(n, kl, ku, 1, ab, m ,ipiv, result,n,info)
-        #else
+#else
         ! DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
        call dgbsv( n, kl, ku, 1, ab, m, ipiv, result, n, info )
-       #endif
+#endif
        u(ci,jtop(ci):jbot(ci))=result(:)
 
        if(info /= 0) then
           !#py write(iulog,*)'index: ', ci
           !#py write(iulog,*)'n,kl,ku,m ',n,kl,ku,m
-          print *, 'dgbsv info: ',ci,info
 
           !#py write(iulog,*) ''
           !#py write(iulog,*) 'ab matrix'

@@ -77,7 +77,7 @@ contains
 
 
   !-----------------------------------------------------------------------
-  integer function initial_template_col_dispatcher(bounds, c_new, cactive_prior) result(c_template)
+  function initial_template_col_dispatcher(bounds, c_new, cactive_prior) result(c_template)
     !
     ! !DESCRIPTION:
     ! Find column to use as a template for the given column that has newly become active;
@@ -126,7 +126,7 @@ contains
 
 
   !-----------------------------------------------------------------------
-  integer function initial_template_col_soil(c_new) result(c_template)
+  function initial_template_col_soil(c_new) result(c_template)
     !
     ! !DESCRIPTION:
     ! Find column to use as a template for a vegetated column that has newly become active.
@@ -157,7 +157,7 @@ contains
   end function initial_template_col_soil
 
   !-----------------------------------------------------------------------
-  integer function initial_template_col_crop(bounds, c_new, cactive_prior) result(c_template)
+  function initial_template_col_crop(bounds, c_new, cactive_prior) result(c_template)
     !
     ! !DESCRIPTION:
     ! Find column to use as a template for a crop column that has newly become active
@@ -190,7 +190,7 @@ contains
 
 
   !-----------------------------------------------------------------------
-  integer function initial_template_col(bounds, c_new, landunit_type, cactive_prior) result(c_template)
+  function initial_template_col(bounds, c_new, landunit_type, cactive_prior) result(c_template)
     !
     ! !DESCRIPTION:
     ! Finds a column to serve as a template for the initialization of another column in

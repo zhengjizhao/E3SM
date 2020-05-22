@@ -5671,8 +5671,6 @@ contains
 
        this%m_decomp_cpools_to_fire(begc:endc,:)      = spval
        this%m_decomp_cpools_to_fire_vr(begc:endc,:,:) = spval
-       print *, "vr_suffix",trim(vr_suffix)
-       print *, "ndecomp_pools:", ndecomp_pools, "nlevdecomp_full", nlevdecomp_full
        do k = 1, ndecomp_pools
           if ( decomp_cascade_con%is_litter(k) .or. decomp_cascade_con%is_cwd(k) ) then
              data1dptr => this%m_decomp_cpools_to_fire(:,k)

@@ -538,7 +538,6 @@ contains
             !#py write(iulog, *) 'surface_prof: ', surface_prof(:)
             !#py write(iulog, *) 'npfts(c): ', col_pp%npfts(c)
             do p = col_pp%pfti(c), col_pp%pfti(c) + col_pp%npfts(c) -1
-               print *, 'p, itype(p), wtcol(p): ', p, veg_pp%itype(p), veg_pp%wtcol(p)
                !#py write(iulog, *) 'cinput_rootfr(p,:): ', cinput_rootfr(p,:)
             end do
             !#py !#py call endrun(msg=" ERROR: _prof_sum-1>delta"//errMsg(__FILE__, __LINE__))

@@ -11,7 +11,7 @@ module dynSubgridControlMod
   ! pass around the single instance just to query these control flags.
   !
   ! !USES:
-  #include "shr_assert.h"
+#include "shr_assert.h"
   use shr_log_mod        , only : errMsg => shr_log_errMsg
   use abortutils         , only : endrun
   use clm_varctl         , only : fname_len

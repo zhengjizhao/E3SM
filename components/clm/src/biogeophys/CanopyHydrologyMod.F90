@@ -259,7 +259,7 @@ contains
        !--------------- temp solution for the irrigation mapping issue, if ELM and MOSART share the same grid, no such problem
        gridnum = bounds%endg - bounds%begg + 1 !number of grid on this processer
         do pp = bounds%begp,bounds%endp
-             if (not (irrig_rate (pp) == irrig_rate(pp)) ) then  !change NAN (if any) to zero so that the grid level irrig_rate can be calculated
+             if (.not. (irrig_rate (pp) == irrig_rate(pp)) ) then  !change NAN (if any) to zero so that the grid level irrig_rate can be calculated
                irrig_rate(pp)=0._r8
              endif
         end do
@@ -297,7 +297,7 @@ contains
           g = currentg + gg - 1
 
           !!
-          if (not(atm2lnd_vars%supply_grc(g) == atm2lnd_vars%supply_grc(g))) then  !change NAN (if any) to zero
+          if (.not.(atm2lnd_vars%supply_grc(g) == atm2lnd_vars%supply_grc(g))) then  !change NAN (if any) to zero
             atm2lnd_vars%supply_grc(g)=0._r8
           end if
 
@@ -752,8 +752,6 @@ contains
              aerosol_vars%mss_dst_top_col(c)  = 0._r8
 
              col_ws%snw_rds(c,0) = snw_rds_min
-             print *, "CANOPY HYDROLOGY:"
-             print *, col_ws%snw_rds(c,0)
           end if
 
           ! The change of ice partial density of surface node due to precipitation.

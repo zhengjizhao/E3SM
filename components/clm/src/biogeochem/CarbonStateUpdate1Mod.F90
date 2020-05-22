@@ -311,8 +311,6 @@ contains
          veg_cs%cpool(p) = veg_cs%cpool(p) - veg_cf%xr(p)*dt
 
          ! maintenance respiration fluxes from xsmrpool
-         print *, "xsmrpool,cpool,leaf,froot:"
-         print *,p,veg_cf%leaf_xsmr(p)
          veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) + veg_cf%cpool_to_xsmrpool(p)*dt
          veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%leaf_xsmr(p)*dt
          veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%froot_xsmr(p)*dt
@@ -320,16 +318,13 @@ contains
             veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%xsmrpool_turnover(p)*dt
          end if
          if (woody(ivt(p)) == 1._r8) then
-            print *, "woody:",p,veg_cf%livestem_xsmr(p),veg_cf%livecroot_xsmr(p)
             veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%livestem_xsmr(p)*dt
             veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%livecroot_xsmr(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
-            print *, ">=npc",p,veg_cf%livestem_xsmr(p),veg_cf%grain_xsmr(p)
             veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%livestem_xsmr(p)*dt
             veg_cs%xsmrpool(p) = veg_cs%xsmrpool(p) - veg_cf%grain_xsmr(p)*dt
             if (harvdate(p) < 999) then ! beginning at harvest, send to atm
-               print *, "harvdate:",p,veg_cf%xsmrpool_to_atm(p)
                veg_cf%xsmrpool_to_atm(p) = veg_cf%xsmrpool_to_atm(p) + veg_cs%xsmrpool(p)/dt
                veg_cs%xsmrpool(p)        = veg_cs%xsmrpool(p)        - veg_cf%xsmrpool_to_atm(p)*dt
             end if

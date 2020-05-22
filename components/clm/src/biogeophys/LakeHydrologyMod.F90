@@ -324,8 +324,6 @@ contains
              aerosol_vars%mss_dst_top_col(c)  = 0._r8
              ! call waterstate_vars%Reset(column=c)
              col_ws%snw_rds(c,0) = snw_rds_min
-             print *, "LAKE HYDROLOGY:"
-             print *, col_ws%snw_rds(c,0)
 
          end if
 
@@ -709,9 +707,6 @@ contains
 
          h2osno_top(c)      = 0._r8
          snw_rds(c,:)       = 0._r8
-         print *, "#2 LAKE HYDROLOGY:"
-         print *, snw_rds(c,-3), snw_rds(c,-2)
-         print *, snw_rds(c,-1), snw_rds(c,0)
          ! top-layer diagnostics (spval is not averaged when computing history fields)
          snot_top(c)        = spval
          dTdz_top(c)        = spval

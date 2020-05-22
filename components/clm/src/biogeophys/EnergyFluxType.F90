@@ -1,6 +1,6 @@
 module EnergyFluxType
 
- #include "shr_assert.h"
+#include "shr_assert.h"
 
   !------------------------------------------------------------------------------
   use shr_kind_mod   , only : r8 => shr_kind_r8
@@ -142,7 +142,7 @@ contains
 
 
     call this%InitAllocate ( bounds )
-    !call this%InitHistory ( bounds )
+    call this%InitHistory ( bounds )
     call this%InitCold ( bounds, t_grnd_col )
 
   end subroutine Init

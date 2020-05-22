@@ -1351,7 +1351,6 @@ contains
         else
            ciso_flux(i) = 0._r8
         end if
-        print *, "ciso_flux/tot:",i,ciso_flux(i), ctot_flux(i)
 
         if (diag == 1) then
            ! put diagnostic print statements here for isoC flux calculations

@@ -44,13 +44,9 @@ contains
     type(bounds_type) , intent(in) :: bounds                      ! clump bounds
     real(r8)          , intent(in) :: icemask_grc( bounds%begg: ) ! ice sheet grid coverage mask [gridcell]
     !------------------------------------------------------------------------
-    print *, "set active"
     call set_active(bounds)
-    print *, "2"
     call check_weights(bounds, active_only=.false.)
-    print *, "2"
     call check_weights(bounds, active_only=.true.)
-    print *, "2"
     call setFilters(bounds, icemask_grc)
         
   end subroutine reweight_wrapup

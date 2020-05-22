@@ -1,6 +1,6 @@
 module SnowSnicarMod
 
- #include "shr_assert.h"
+#include "shr_assert.h"
 
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:
@@ -1279,15 +1279,12 @@ contains
          dTdz_top           => col_es%dTdz_top        & ! Output: [real(r8) (:)   ]  temperature gradient in top layer (col) [K m-1]
          )
       ! set timestep and step interval
-        print *, "num_snowc=",num_snowc
       ! loop over columns that have at least one snow layer
       do fc = 1, num_snowc
          c_idx = filter_snowc(fc)
 
          snl_btm = 0
          snl_top = snl(c_idx) + 1
-         print *,"snl_btm,snl_top:"
-         print *, snl_btm, snl_top, num_snowc, c_idx
          cdz(snl_top:snl_btm)=frac_sno(c_idx)*dz(c_idx,snl_top:snl_btm)
 
          ! loop over snow layers
@@ -1350,8 +1347,6 @@ contains
             bst_tau   = snowage_tau(rhos_idx,Tgrd_idx,T_idx)
             bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)
             bst_drdt0 = snowage_drdt0(rhos_idx,Tgrd_idx,T_idx)
-            print *, "best fit parameters:"
-            print *, bst_tau, bst_kappa, bst_drdt0
 
             ! change in snow effective radius, using best-fit parameters
             ! added checks suggested by mgf. --HW 10/15/2015
@@ -1364,9 +1359,6 @@ contains
                !#py write(iulog,*) "dr_fresh = ", dr_fresh
                !#py call endrun( "dr_fresh < 0" )
             end if
-            print *, "DR:"
-            print *, bst_drdt0, bst_tau, dr_fresh
-            print *, bst_kappa
             dr = (bst_drdt0*(bst_tau/(dr_fresh+bst_tau))**(1._r8/bst_kappa)) * (dtime/3600._r8)
 #else
             dr = (bst_drdt0*(bst_tau/(dr_fresh+bst_tau))**(1/bst_kappa)) * (dtime/3600)
@@ -1432,9 +1424,6 @@ contains
             endif
 
             ! mass-weighted mean of fresh snow, old snow, and re-frozen snow effective radius
-            print *, "SNOWAGE GRAIN:"
-            print *, snw_rds(c_idx,i), dr ,frc_oldsnow
-            print *,snw_rds_min, frc_newsnow, snw_rds_refrz, frc_refrz
             snw_rds(c_idx,i) = (snw_rds(c_idx,i)+dr)*frc_oldsnow + snw_rds_min*frc_newsnow + snw_rds_refrz*frc_refrz
             !
             !**********  5. CHECK BOUNDARIES   ***********
@@ -1512,7 +1501,7 @@ contains
       !$acc ext_cff_mss_snw_dfs &
       !$acc )
       !
- #ifdef MODAL_AER
+#ifdef MODAL_AER
      !mgf++
      ! size-dependent BC parameters and BC enhancement factors
      if (masterproc) write(iulog,*) 'Attempting to read optical properties for within-ice BC (modal aerosol treatment) ...'
@@ -1538,7 +1527,7 @@ contains
      if (.not. readvar) call endrun()
      !$acc update device(bcenh)
      !
- #else
+#else
      ! bulk aerosol treatment
       ! BC species 1 Mie parameters
       call ncd_io( 'ss_alb_bcphil', ss_alb_bc1,           'read', ncid, posNOTonfile=.true.)
@@ -1551,7 +1540,7 @@ contains
       call ncd_io( 'ext_cff_mss_bcphob', ext_cff_mss_bc2, 'read', ncid, posNOTonfile=.true.)
       !
      !mgf--
- #endif
+#endif
  !$acc update device( &
  !$acc ss_alb_bc1     , &
  !$acc asm_prm_bc1    , &
@@ -1629,7 +1618,7 @@ contains
             write (iulog,*) 'SNICAR: Excluding OC aerosols from snow radiative transfer calculations'
          endif
          !
- #ifdef MODAL_AER
+#ifdef MODAL_AER
         !mgf++
         ! unique dimensionality for modal aerosol optical properties
         write (iulog,*) 'SNICAR: Subset of Mie single scatter albedos for BC: ', &
@@ -1643,12 +1632,12 @@ contains
              bcenh(1,1,1), bcenh(1,2,1), bcenh(1,1,2), bcenh(2,1,1), bcenh(5,10,1), bcenh(5,1,8), bcenh(5,10,8)
         ! test comparison: ncks -H -C -F -d wvl,5 -d ncl_rds,1 -d ice_rds,8 -v ss_alb_bc_mam,asm_prm_bc_mam,ext_cff_mss_bc_mam,bcint_enh_mam snicar_optics_5bnd_mam_c160322.nc
         !mgf--
- #else
+#else
          write (iulog,*) 'SNICAR: Mie single scatter albedos for hydrophillic BC: ', &
               ss_alb_bc1(1), ss_alb_bc1(2), ss_alb_bc1(3), ss_alb_bc1(4), ss_alb_bc1(5)
          write (iulog,*) 'SNICAR: Mie single scatter albedos for hydrophobic BC: ', &
               ss_alb_bc2(1), ss_alb_bc2(2), ss_alb_bc2(3), ss_alb_bc2(4), ss_alb_bc2(5)
- #endif
+#endif
         !
          if (DO_SNO_OC) then
             write (iulog,*) 'SNICAR: Mie single scatter albedos for hydrophillic OC: ', &
@@ -2037,7 +2026,6 @@ contains
 
           ! set snow/ice mass to be used for RT:
           if (flg_snw_ice == 1) then
-            print *, "WATERSTATE_VARS stop??"
              !h2osno_lcl = h2osno(c_idx)
           else
              h2osno_lcl = h2osno_ice(c_idx,0)

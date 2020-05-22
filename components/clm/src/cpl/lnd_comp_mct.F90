@@ -132,10 +132,10 @@ contains
     ! Initialize clm MPI communicator
 
     call spmd_init( mpicom_lnd, LNDID )
-    #ifdef _OPENACC
+#ifdef _OPENACC
     print *, " initializing acc"
     call acc_initialization()
-    #endif
+#endif
 #if (defined _MEMTRACE)
     if(masterproc) then
        lbnum=1
@@ -452,7 +452,6 @@ contains
     dtime = get_step_size()
 
     call seq_infodata_GetData(infodata, atm_present=atm_present)
-    print *, "ATM PRESENT:", atm_present
     if (.not. atm_present) then
       !Calcualte next radiation calendar day (since atm model did not run to set this)
       !DMR:  NOTE this assumes a no-leap calendar and equal input/model timesteps
@@ -464,8 +463,6 @@ contains
     write(rdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr_sync,mon_sync,day_sync,tod_sync
     nlend_sync = seq_timemgr_StopAlarmIsOn( EClock )
     rstwr_sync = seq_timemgr_RestartAlarmIsOn( EClock )
-     print *,"sync times:", yr_sync, mon_sync, day_sync, tod_sync
-     print *, "end restart times:", nlend_sync, rstwr_sync
     ! Map MCT to land data type
     ! Perform downscaling if appropriate
 
@@ -481,7 +478,6 @@ contains
     call seq_infodata_GetData( infodata, orb_eccen=eccen, orb_mvelpp=mvelpp, &
          orb_lambm0=lambm0, orb_obliqr=obliqr )
     
-    print *, "doing drv run"
     ! Loop over time steps in coupling interval
     dosend = .false.
     do while(.not. dosend)
@@ -522,14 +518,6 @@ contains
        calday = get_curr_calday()
        call shr_orb_decl( calday     , eccen, mvelpp, lambm0, obliqr, declin  , eccf )
        call shr_orb_decl( nextsw_cday, eccen, mvelpp, lambm0, obliqr, declinp1, eccf )
-       print *, "ORBIT DATA:"
-       print *, "calday, nextsw_cday:", calday, nextsw_cday
-       print *, "eccen:",eccen
-       print *, "mvelpp:", mvelpp
-       print *, "lambm0:", lambm0
-       print *, "obliqr:", obliqr
-       print *, "declin, declinp1:", declin, declinp1
-       print *, "eccf:", eccf
        call t_stopf ('shr_orb_decl')
        call clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
        call t_stopf ('clm_run')
@@ -744,7 +732,7 @@ contains
   end subroutine lnd_domain_mct
 
 
-        subroutine acc_initialization()
+  subroutine acc_initialization()
                 use openacc
                 use spmdMod,  only : iam
 
@@ -757,7 +745,6 @@ contains
                 call acc_set_device_num(mod(iam,ngpus),acc_device_nvidia)
 
                 mygpu = acc_get_device_num(acc_device_nvidia)
-                print *, "iam, mygpu: ", iam, mygpu
-        end subroutine
+   end subroutine
 
 end module lnd_comp_mct

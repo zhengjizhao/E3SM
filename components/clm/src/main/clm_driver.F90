@@ -164,7 +164,7 @@ module clm_driver
   use NitrifDenitrifMod        , only : NitrifDenitrifParamsInst
   use SoilLittDecompMod        , only : cndecompparamsinst
   use AllocationMod            , only : AllocParamsInst
-  use LandunitDataType         , only : lun_ef, lun_es, lun_ws, lun_wf
+  use LandunitDataType         , only : lun_ef, lun_es, lun_ws
   use glc2lndMod                , only : glc2lnd_vars_update_glc2lnd_acc
 
 
@@ -307,7 +307,6 @@ contains
     end_cd = is_end_curr_day()
     call get_prev_date(year_prev, mon_prev, day_prev, secs_prev)
     if(nstep == 0 ) then
-      print *, "transferring data to GPU"
        call init_proc_clump_info()
        !$acc update device( &
        !$acc        spinup_state            &
@@ -443,7 +442,6 @@ contains
           ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
           if ( n_drydep > 0 .and. drydep_method == DD_XLND ) then
              call t_startf('interpMonthlyVeg')
-             print *, "TURNED OFF INTERPMONTHLYVEG"
              !call interpMonthlyVeg(bounds_proc, canopystate_vars)
              call t_stopf('interpMonthlyVeg')
           endif
@@ -456,20 +454,17 @@ contains
           ! weights obtained here are used in subroutine SatellitePhenology to obtain time
           ! interpolated values.
           if (doalb .or. ( n_drydep > 0 .and. drydep_method == DD_XLND )) then
-             print *, "TURNED OFF INTERPMONTHLYVEG"
-              call t_startf('interpMonthlyVeg')
+             call t_startf('interpMonthlyVeg')
              !call interpMonthlyVeg(bounds_proc, canopystate_vars)
              call t_stopf('interpMonthlyVeg')
           end if
        end if
     end if
 
-   print *, "first loop!"
   !$acc parallel default(present)
 
    !$acc loop independent gang private(nc, bounds_clump)
     do nc = 1, nclumps
-      print *, "times:", nstep, dtime, year, mon, day, secs
        call get_clump_bounds_gpu(nc, bounds_clump)
 
        ! ==================================================================================
@@ -481,8 +476,6 @@ contains
        ! ==================================================================================
       call alt_calc(filter(nc)%num_soilc, filter(nc)%soilc, canopystate_vars, &
                       year, mon,day,secs, dtime)
-      print *, "ALTMAX LASTYEAR:"
-           print *, canopystate_vars%altmax_lastyear_col(1),canopystate_vars%altmax_lastyear_col(2) 
       if (use_cn) then
           !  Note (WJS, 6-12-13): Because of this routine's placement in the driver sequence
           !  (it is called very early in each timestep, before weights are adjusted and
@@ -491,7 +484,6 @@ contains
           !  active) - so that's what is done now. Currently, it seems to be okay to do this,
           !  because the variables computed here seem to only depend on quantities that are
           !  valid over inactive as well as active points.
-          print *, "decomp_vertprofiles:"
           call decomp_vertprofiles2(bounds_clump, &
                filter_inactive_and_active(nc), &
                soilstate_vars, canopystate_vars, cnstate_vars)
@@ -506,14 +498,12 @@ contains
             filter(nc)%num_hydrologyc, filter(nc)%hydrologyc, &
             soilhydrology_vars)
 
-      print *, "done with grid water balance"
       call elm_zero_fluxes(bounds_clump)
 
       if (use_cn) then
         call vegcs_Summary_acc(veg_cs,bounds_clump, &
              filter(nc)%num_soilc, filter(nc)%soilc, &
              filter(nc)%num_soilp, filter(nc)%soilp, col_cs)
-        print *, "colcs before begin grid C Balance"
         call colcs_Summary_acc(col_cs,bounds_clump, &
              filter(nc)%num_soilc, filter(nc)%soilc)
 
@@ -552,7 +542,6 @@ contains
         ! and or dynamic landunits), and do related adjustments. Note that this
         ! call needs to happen outside loops over nclumps.
         ! ============================================================================
-        print *, "dynsubgrid driver"
 
        call dyn_hwcontent_init(bounds_clump, &
             filter(nc)%num_nolakec, filter(nc)%nolakec, &
@@ -572,12 +561,9 @@ contains
        ! actually changed some weights in this time step. This is also required in the
        ! first time step of the run to update filters to reflect state of CISM
        ! (particularly mask that is past through coupler).
-       print *, "wrapup weight changes"
        call dynSubgrid_wrapup_weight_changes(bounds_clump, glc2lnd_vars)
 
-       print *,"new_weights,patch"
        call patch_set_new_weightsAcc (patch_state_updater ,bounds_clump)
-       print *, "column set new weights"
        call column_set_new_weightsAcc(column_state_updater,bounds_clump, nc)
 
        call set_subgrid_diagnostic_fields(bounds_clump)
@@ -593,7 +579,6 @@ contains
             energyflux_vars, dtime)
 
        if (use_cn) then
-         print *, "dyn cnbal patch!!!"
           call dyn_cnbal_patch(bounds_clump, &
                filter_inactive_and_active(nc)%num_soilp, filter_inactive_and_active(nc)%soilp, &
                filter_inactive_and_active(nc)%num_soilc, filter_inactive_and_active(nc)%soilc, &
@@ -645,7 +630,6 @@ contains
                      filter(nc)%num_soilc, filter(nc)%soilc, &
                      filter(nc)%num_soilp, filter(nc)%soilp, col_cs)
 
-                print *,"colcs summary!! AFTER dynsubgrid"
                 call colcs_Summary_acc(col_cs, bounds_clump, &
                      filter(nc)%num_soilc, filter(nc)%soilc)
 
@@ -784,14 +768,12 @@ contains
     ! ============================================================================
 
 
-    print *, "main loop"
   !$acc parallel default(present)
 
     !$acc loop independent gang private(nc, bounds_clump)
     do nc = 1,nclumps
 
        call get_clump_bounds_gpu(nc, bounds_clump)
-       print *, top_af%snow(1),top_af%snow(2)
        call UpdateDaylength(bounds_clump, declin)
        ! Initialze variables needed for new driver time step
        call clm_drv_init(bounds_clump, &
@@ -833,7 +815,6 @@ contains
                                        atm2lnd_vars, surfalb_vars, canopystate_vars,    &
                                        solarabs_vars)
 
-         print *, " surface Radiation"
 
           call SurfaceRadiation(bounds_clump,                        &
                    filter(nc)%num_nourbanp, filter(nc)%nourbanp,  &
@@ -1189,7 +1170,6 @@ contains
        ! ============================================================================
 
        if (doalb) then
-          print * , "Albedos:"
           ! Albedos for non-urban columns
           call SurfaceAlbedo(bounds_clump,                      &
                filter_inactive_and_active(nc)%num_nourbanc,     &
@@ -1216,7 +1196,6 @@ contains
           end if
 
        end if
-       print *, "lnd2atm"
       ! ============================================================================
       ! Determine gridcell averaged properties to send to atm
       ! ===========================================================================
@@ -1240,10 +1219,8 @@ contains
         ! FIX(SPM,032414) double check why this isn't called for ED
 
         if (nstep > 0) then
-              print *, "accumulation:"
               call get_clump_bounds_gpu(nc, bounds_clump)
               call atm2lnd_UpdateAccVars(atm2lnd_vars, bounds_clump, nstep)
-               print *, "topaf"
               !call top_as%UpdateAccVars(bounds_proc)  !!only needed if use_fates
               call update_acc_vars_top_afGPU (top_af, bounds_clump, nstep)
 
@@ -1275,7 +1252,6 @@ contains
     ! ============================================================================
     ! Update history buffer
     ! ============================================================================
-    print *, "hbuf:"
     call hist_update_hbuf_gpu(0,bounds_proc)
 
     ! ============================================================================
@@ -1300,7 +1276,7 @@ contains
        ! Create history and write history tapes if appropriate
        call t_startf('clm_drv_io_htapes')
 
-       call hist_htapes_wrapup(10, rstwr, nlend, bounds_proc,                    &
+       call hist_htapes_wrapup(rstwr, nlend, bounds_proc,                     &
             soilstate_vars%watsat_col(bounds_proc%begc:bounds_proc%endc, 1:), &
             soilstate_vars%sucsat_col(bounds_proc%begc:bounds_proc%endc, 1:), &
             soilstate_vars%bsw_col(bounds_proc%begc:bounds_proc%endc, 1:),    &

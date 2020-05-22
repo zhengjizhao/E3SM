@@ -1,5 +1,5 @@
 module landunit_varcon
-  #include "shr_assert.h"
+#include "shr_assert.h"
 
   !-----------------------------------------------------------------------
   ! !DESCRIPTION:

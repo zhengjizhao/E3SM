@@ -1,7 +1,7 @@
 module accumulGPUMod
 
   !module that contains the class methods needed to update accumulators
-  use accumulMod       , only : accum_type, accumResetVal, naccflds
+  use accumulMod       , only : accumResetVal, naccflds
   use shr_kind_mod     , only : r8 => shr_kind_r8
   use atm2lndType      , only : atm2lnd_type
   use TopounitDataType , only : topounit_atmospheric_flux
@@ -53,7 +53,6 @@ module accumulGPUMod
       integer :: nf
       integer :: i, j, lb, ub
 
-      print *, "allocating ",naccflds,"for gpu accum"
       allocate(accum_field_gpu(naccflds))
 
       do nf = 1, naccflds
@@ -165,7 +164,7 @@ module accumulGPUMod
       integer , value , intent(in) :: nstep              !time step index
       !
       ! !LOCAL VARIABLES:
-      integer :: i,j,k,nf            !indices
+      integer :: i,j,k               !indices
       integer :: accper              !temporary accumulation period
       integer :: beg,end             !subgrid beginning,ending indices
       integer :: numlev              !number of vertical levels
@@ -248,7 +247,7 @@ module accumulGPUMod
       integer ,value, intent(in) :: nstep            !timestep index
       !
       ! !LOCAL VARIABLES:
-      integer :: i,k,nf        !indices
+      integer :: i,k             !indices
       integer :: beg,end         !subgrid beginning,ending indices
       !------------------------------------------------------------------------
 
@@ -294,17 +293,17 @@ module accumulGPUMod
       integer,value, intent(in) :: nstep               !timestep index
       !
       ! !LOCAL VARIABLES:
-      integer :: i,j,k,nf        !indices
+      integer :: i,j,k           !indices
       integer :: beg,end         !subgrid beginning,ending indices
       integer :: numlev          !number of vertical levels
       !------------------------------------------------------------------------
 
       ! find field index. return if "name" is not on list
 
-      nf = 0
-      do i = 1, naccflds
-         if (name == accum_field_gpu(i)%name) nf = i
-      end do
+      !nf = 0
+      !do i = 1, naccflds
+      !   if (name == accum_field_gpu(i)%name) nf = i
+      !end do
 
       ! error check
 
@@ -334,6 +333,8 @@ module accumulGPUMod
      subroutine atm2lnd_UpdateAccVars (atm2lnd_vars, bounds, nstep)
        !
        ! USES
+       use clm_varctl      , only: use_cn, use_fates
+
        !$acc routine seq
        ! !ARGUMENTS:
        type(atm2lnd_type)  , intent(inout) :: atm2lnd_vars
@@ -415,6 +416,8 @@ module accumulGPUMod
      subroutine update_acc_vars_top_afGPU (top_af, bounds, nstep)
        !
        ! USES
+       use clm_varctl      , only: use_cn, use_fates
+
        !$acc routine seq
        ! !ARGUMENTS:
        type(topounit_atmospheric_flux)    :: top_af
@@ -457,7 +460,8 @@ module accumulGPUMod
     !$acc routine seq
     ! USES
     use shr_const_mod    , only : SHR_CONST_CDAY, SHR_CONST_TKFRZ
-    !
+    use clm_varpar      , only: crop_prog
+
     ! !ARGUMENTS:
     type(vegetation_energy_state)    :: veg_es
     type(bounds_type)      , intent(in) :: bounds

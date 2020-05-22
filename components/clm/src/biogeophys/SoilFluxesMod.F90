@@ -397,12 +397,7 @@ contains
                 if (j >= 1) then 
                        temp = t_soisno(c,j)-tssbef(c,j)
                        temp = temp/fact(c,j)
-                       ! print *, "j>=1,diff/fact, fact, snow, BEFORE:"
-                        !print *,temp,fact(c,j),errsoi_patch(p) 
                        errsoi_patch(p) = errsoi_patch(p) - temp
-                 
-                !print *,"snow AFTER"
-                !print *, p, errsoi_patch(p)
                 end if 
 
             end if

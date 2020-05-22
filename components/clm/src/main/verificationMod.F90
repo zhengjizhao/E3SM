@@ -5,13 +5,13 @@ subroutine update_vars_UpdateDaylength(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_UpdateDaylength.txt"
      else
           file='cpu_UpdateDaylength.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc grc_pp%dayl, & 
      !$acc grc_pp%prev_dayl )
@@ -32,13 +32,13 @@ subroutine update_vars_clm_drv_init(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_clm_drv_init.txt"
      else
           file='cpu_clm_drv_init.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%h2osno_old, & 
      !$acc col_ws%do_capsnow, & 
@@ -77,13 +77,13 @@ subroutine update_vars_downscale_forcings(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_downscale_forcings.txt"
      else
           file='cpu_downscale_forcings.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc atm2lnd_vars%forc_rain_downscaled_col, & 
      !$acc atm2lnd_vars%forc_th_downscaled_col, & 
@@ -155,13 +155,13 @@ subroutine update_vars_CanopyHydrology(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CanopyHydrology.txt"
      else
           file='cpu_CanopyHydrology.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%dz, & 
      !$acc col_pp%snl, & 
@@ -369,13 +369,13 @@ subroutine update_vars_CanopySunShadeFractions(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CanopySunShadeFractions.txt"
      else
           file='cpu_CanopySunShadeFractions.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc solarabs_vars%parsha_z_patch, & 
      !$acc solarabs_vars%parsun_z_patch )
@@ -411,13 +411,13 @@ subroutine update_vars_SurfaceRadiation(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SurfaceRadiation.txt"
      else
           file='cpu_SurfaceRadiation.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%snl )
      !$acc update self(& 
@@ -560,13 +560,13 @@ subroutine update_vars_UrbanRadiation(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_UrbanRadiation.txt"
      else
           file='cpu_UrbanRadiation.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc lun_pp%wtroad_perv, & 
      !$acc lun_pp%canyon_hwr )
@@ -650,13 +650,13 @@ subroutine update_vars_CanopyTemperature(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CanopyTemperature.txt"
      else
           file='cpu_CanopyTemperature.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%snl, & 
      !$acc col_pp%zii )
@@ -832,13 +832,13 @@ subroutine update_vars_CanopyFluxes(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CanopyFluxes.txt"
      else
           file='cpu_CanopyFluxes.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc top_as%pbot )
      !$acc update self(& 
@@ -1515,13 +1515,13 @@ subroutine update_vars_BareGroundFluxes(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_BareGroundFluxes.txt"
      else
           file='cpu_BareGroundFluxes.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc top_as%pbot )
      !$acc update self(& 
@@ -1640,13 +1640,13 @@ subroutine update_vars_LakeFluxes(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_LakeFluxes.txt"
      else
           file='cpu_LakeFluxes.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc top_as%pbot )
      !$acc update self(& 
@@ -1785,13 +1785,13 @@ subroutine update_vars_DustEmission(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_DustEmission.txt"
      else
           file='cpu_DustEmission.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc dust_vars%flx_mss_vrt_dst_patch, & 
      !$acc dust_vars%flx_mss_vrt_dst_tot_patch )
@@ -1808,13 +1808,13 @@ subroutine update_vars_DustDryDep(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_DustDryDep.txt"
      else
           file='cpu_DustDryDep.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc dust_vars%vlc_trb_1_patch, & 
      !$acc dust_vars%vlc_trb_patch, & 
@@ -1846,13 +1846,13 @@ subroutine update_vars_LakeTemperature(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_LakeTemperature.txt"
      else
           file='cpu_LakeTemperature.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%frac_iceold, & 
      !$acc col_ws%h2osoi_liq, & 
@@ -1966,13 +1966,13 @@ subroutine update_vars_SoilTemperature(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SoilTemperature.txt"
      else
           file='cpu_SoilTemperature.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ef%eflx_urban_heat, & 
      !$acc col_ef%eflx_urban_ac, & 
@@ -2154,13 +2154,13 @@ subroutine update_vars_SoilFluxes(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SoilFluxes.txt"
      else
           file='cpu_SoilFluxes.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc veg_wf%qflx_ev_snow, & 
      !$acc veg_wf%qflx_evap_soi, & 
@@ -2271,13 +2271,13 @@ subroutine update_vars_clm_drv_patch2col(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_clm_drv_patch2col.txt"
      else
           file='cpu_clm_drv_patch2col.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      end if 
      !! CPU print statements !! 
      close(10)
@@ -2294,13 +2294,13 @@ subroutine update_vars_HydrologyNoDrainage(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_HydrologyNoDrainage.txt"
      else
           file='cpu_HydrologyNoDrainage.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%dz, & 
      !$acc col_pp%zi, & 
@@ -2829,13 +2829,13 @@ subroutine update_vars_AerosolMasses(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_AerosolMasses.txt"
      else
           file='cpu_AerosolMasses.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%snw_rds, & 
      !$acc col_ws%h2osno_top )
@@ -2936,13 +2936,13 @@ subroutine update_vars_LakeHydrology(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_LakeHydrology.txt"
      else
           file='cpu_LakeHydrology.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%dz, & 
      !$acc col_pp%snl, & 
@@ -3472,13 +3472,13 @@ subroutine update_vars_SnowAge_grain(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SnowAge_grain.txt"
      else
           file='cpu_SnowAge_grain.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%sno_liq_top, & 
      !$acc col_ws%snw_rds, & 
@@ -3513,16 +3513,17 @@ subroutine update_vars_EcosystemDynNoLeaching1(gpu)
      use VegetationDataType, only : veg_ns 
      use VegetationDataType, only : c14_veg_cf 
      use VegetationDataType, only : c13_veg_cf 
+     use clm_varctl        , only : use_c13, use_c14
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_EcosystemDynNoLeaching1.txt"
      else
           file='cpu_EcosystemDynNoLeaching1.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_nf%ndep_to_sminn, & 
      !$acc col_nf%nfix_to_sminn, & 
@@ -3793,14 +3794,18 @@ subroutine update_vars_EcosystemDynNoLeaching1(gpu)
      write(10,*) cnstate_vars%astemi_patch
      write(10,*) 'veg_ns%benefit_pgpp_pleafc' 
      write(10,*) veg_ns%benefit_pgpp_pleafc
+     if ( use_c14 ) then
      write(10,*) 'c14_veg_cf%psnshade_to_cpool' 
      write(10,*) c14_veg_cf%psnshade_to_cpool
      write(10,*) 'c14_veg_cf%psnsun_to_cpool' 
      write(10,*) c14_veg_cf%psnsun_to_cpool
+     endif
+     if ( use_c13 ) then
      write(10,*) 'c13_veg_cf%psnshade_to_cpool' 
      write(10,*) c13_veg_cf%psnshade_to_cpool
      write(10,*) 'c13_veg_cf%psnsun_to_cpool' 
      write(10,*) c13_veg_cf%psnsun_to_cpool
+     endif
      close(10)
 end subroutine 
 subroutine update_vars_EcosystemDynNoLeaching2(gpu)
@@ -3816,6 +3821,7 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      use VegetationPropertiesType, only : veg_vp 
      use VegetationDataType, only : veg_cf 
      use clm_instMod, only : canopystate_vars 
+     use clm_varctl        , only : use_c13, use_c14
      use VegetationDataType, only : c13_veg_cf 
      use VegetationDataType, only : c14_veg_cf 
      use VegetationDataType, only : veg_es 
@@ -3837,13 +3843,13 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_EcosystemDynNoLeaching2.txt"
      else
           file='cpu_EcosystemDynNoLeaching2.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_nf%pmnf_decomp_cascade, & 
      !$acc col_nf%soil_n_immob_flux_vr, & 
@@ -7249,14 +7255,18 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) canopystate_vars%laisun_patch
      write(10,*) 'canopystate_vars%laisha_patch' 
      write(10,*) canopystate_vars%laisha_patch
+     if ( use_c13 ) then
      write(10,*) 'c13_veg_cf%psnshade_to_cpool' 
      write(10,*) c13_veg_cf%psnshade_to_cpool
      write(10,*) 'c13_veg_cf%psnsun_to_cpool' 
      write(10,*) c13_veg_cf%psnsun_to_cpool
+     endif
+     if ( use_c14 ) then
      write(10,*) 'c14_veg_cf%psnshade_to_cpool' 
      write(10,*) c14_veg_cf%psnshade_to_cpool
      write(10,*) 'c14_veg_cf%psnsun_to_cpool' 
      write(10,*) c14_veg_cf%psnsun_to_cpool
+     endif
      write(10,*) 'veg_es%gdd820' 
      write(10,*) veg_es%gdd820
      write(10,*) 'veg_es%gdd1020' 
@@ -7757,6 +7767,7 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) col_ps%prod10p
      write(10,*) 'col_ps%prod1p' 
      write(10,*) col_ps%prod1p
+     if ( use_c13 ) then
      write(10,*) 'c13_col_cs%decomp_cpools_vr' 
      write(10,*) c13_col_cs%decomp_cpools_vr
      write(10,*) 'c13_col_cs%prod100c' 
@@ -7765,6 +7776,8 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) c13_col_cs%prod10c
      write(10,*) 'c13_col_cs%prod1c' 
      write(10,*) c13_col_cs%prod1c
+     endif
+     if ( use_c14 ) then
      write(10,*) 'c14_col_cs%decomp_cpools_vr' 
      write(10,*) c14_col_cs%decomp_cpools_vr
      write(10,*) 'c14_col_cs%prod100c' 
@@ -7777,6 +7790,8 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) c14_col_cs%seedc
      write(10,*) 'c14_col_cs%decomp_cpools_vr' 
      write(10,*) c14_col_cs%decomp_cpools_vr
+     endif
+     if ( use_c13 ) then
      write(10,*) 'c13_col_cf%decomp_cpools_transport_tendency' 
      write(10,*) c13_col_cf%decomp_cpools_transport_tendency
      write(10,*) 'c13_col_cf%prod10c_loss' 
@@ -7785,6 +7800,8 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) c13_col_cf%prod100c_loss
      write(10,*) 'c13_col_cf%prod1c_loss' 
      write(10,*) c13_col_cf%prod1c_loss
+     endif
+     if ( use_c14 ) then
      write(10,*) 'c14_col_cf%decomp_cpools_transport_tendency' 
      write(10,*) c14_col_cf%decomp_cpools_transport_tendency
      write(10,*) 'c14_col_cf%prod10c_loss' 
@@ -7839,6 +7856,7 @@ subroutine update_vars_EcosystemDynNoLeaching2(gpu)
      write(10,*) c14_veg_cs%frootc_xfer
      write(10,*) 'c14_veg_cs%deadcrootc_xfer' 
      write(10,*) c14_veg_cs%deadcrootc_xfer
+     endif
      close(10)
 end subroutine 
 subroutine update_vars_SurfaceAlbedo(gpu)
@@ -7846,13 +7864,13 @@ subroutine update_vars_SurfaceAlbedo(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SurfaceAlbedo.txt"
      else
           file='cpu_SurfaceAlbedo.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc surfalb_vars%albgrd_dst_col, & 
      !$acc surfalb_vars%fabd_sun_patch, & 
@@ -8049,13 +8067,13 @@ subroutine update_vars_UrbanAlbedo(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_UrbanAlbedo.txt"
      else
           file='cpu_UrbanAlbedo.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc lun_pp%wtroad_perv, & 
      !$acc lun_pp%canyon_hwr )
@@ -8181,13 +8199,13 @@ subroutine update_vars_AnnualUpdate(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_AnnualUpdate.txt"
      else
           file='cpu_AnnualUpdate.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc veg_cf%annsum_npp, & 
      !$acc veg_cf%tempsum_npp )
@@ -8232,13 +8250,13 @@ subroutine update_vars_SatellitePhenology(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SatellitePhenology.txt"
      else
           file='cpu_SatellitePhenology.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc canopystate_vars%esai_patch, & 
      !$acc canopystate_vars%hbot_patch, & 
@@ -8273,19 +8291,21 @@ subroutine update_vars_depvel_compute(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_depvel_compute.txt"
      else
           file='cpu_depvel_compute.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc drydepvel_vars%velocity_patch )
      end if 
      !! CPU print statements !! 
      write(10,*) 'drydepvel_vars%velocity_patch' 
+#if 0
      write(10,*) drydepvel_vars%velocity_patch
+#endif
      close(10)
 end subroutine 
 subroutine update_vars_CH4(gpu)
@@ -8297,13 +8317,13 @@ subroutine update_vars_CH4(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CH4.txt"
      else
           file='cpu_CH4.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc top_as%pch4bot )
      !$acc update self(& 
@@ -8554,13 +8574,13 @@ subroutine update_vars_HydrologyDrainage(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_HydrologyDrainage.txt"
      else
           file='cpu_HydrologyDrainage.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%endwb, & 
      !$acc col_ws%h2osoi_liq_depth_intg, & 
@@ -8673,13 +8693,13 @@ subroutine update_vars_VegStructUpdate(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_VegStructUpdate.txt"
      else
           file='cpu_VegStructUpdate.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc cnstate_vars%peaklai_patch, & 
      !$acc cnstate_vars%htmx_patch )
@@ -8722,13 +8742,13 @@ subroutine update_vars_ColWaterBalanceCheck(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_ColWaterBalanceCheck.txt"
      else
           file='cpu_ColWaterBalanceCheck.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc top_af%rain, & 
      !$acc top_af%snow )
@@ -8829,13 +8849,13 @@ subroutine update_vars_GridBalanceCheck(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_GridBalanceCheck.txt"
      else
           file='cpu_GridBalanceCheck.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%h2osoi_ice_depth_intg, & 
      !$acc col_ws%h2ocan, & 
@@ -8894,13 +8914,13 @@ subroutine update_vars_ColCBalanceCheck(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_ColCBalanceCheck.txt"
      else
           file='cpu_ColCBalanceCheck.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_cf%er )
      !$acc update self(& 
@@ -8922,13 +8942,13 @@ subroutine update_vars_ColNBalanceCheck(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_ColNBalanceCheck.txt"
      else
           file='cpu_ColNBalanceCheck.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_nf%ninputs, & 
      !$acc col_nf%noutputs )
@@ -8954,13 +8974,13 @@ subroutine update_vars_ColPBalanceCheck(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_ColPBalanceCheck.txt"
      else
           file='cpu_ColPBalanceCheck.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pf%poutputs, & 
      !$acc col_pf%pinputs )
@@ -8992,13 +9012,13 @@ subroutine update_vars_WaterBudget_SetEndingMonthlyStates(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_WaterBudget_SetEndingMonthlyStates.txt"
      else
           file='cpu_WaterBudget_SetEndingMonthlyStates.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%endwb )
      !$acc update self(& 
@@ -9016,13 +9036,13 @@ subroutine update_vars_SoilErosion(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_SoilErosion.txt"
      else
           file='cpu_SoilErosion.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc sedflux_vars%sed_p_ero_col, & 
      !$acc sedflux_vars%sed_ero_col, & 
@@ -9048,6 +9068,7 @@ subroutine update_vars_EcosystemDynLeaching(gpu)
      use VegetationDataType, only : veg_ps 
      use ColumnDataType, only : col_ps 
      use VegetationDataType, only : veg_cs 
+     use clm_varctl        , only : use_c13, use_c14
      use VegetationDataType, only : c13_veg_cs 
      use ColumnDataType, only : c14_col_cs 
      use VegetationDataType, only : c14_veg_cs 
@@ -9056,13 +9077,13 @@ subroutine update_vars_EcosystemDynLeaching(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_EcosystemDynLeaching.txt"
      else
           file='cpu_EcosystemDynLeaching.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pf%primp_to_labilep_vr, & 
      !$acc col_pf%labilep_to_secondp_vr, & 
@@ -9586,6 +9607,7 @@ subroutine update_vars_EcosystemDynLeaching(gpu)
      write(10,*) veg_cs%frootc_xfer
      write(10,*) 'veg_cs%deadcrootc_xfer' 
      write(10,*) veg_cs%deadcrootc_xfer
+     if ( use_c13 ) then
      write(10,*) 'c13_veg_cs%cpool' 
      write(10,*) c13_veg_cs%cpool
      write(10,*) 'c13_veg_cs%gresp_xfer' 
@@ -9630,6 +9652,8 @@ subroutine update_vars_EcosystemDynLeaching(gpu)
      write(10,*) c13_veg_cs%frootc_xfer
      write(10,*) 'c13_veg_cs%deadcrootc_xfer' 
      write(10,*) c13_veg_cs%deadcrootc_xfer
+     endif
+     if ( use_c14 ) then
      write(10,*) 'c14_col_cs%ctrunc_vr' 
      write(10,*) c14_col_cs%ctrunc_vr
      write(10,*) 'c14_col_cs%decomp_cpools_vr' 
@@ -9678,14 +9702,17 @@ subroutine update_vars_EcosystemDynLeaching(gpu)
      write(10,*) c14_veg_cs%frootc_xfer
      write(10,*) 'c14_veg_cs%deadcrootc_xfer' 
      write(10,*) c14_veg_cs%deadcrootc_xfer
+     endif
      write(10,*) 'col_cs%ctrunc_vr' 
      write(10,*) col_cs%ctrunc_vr
      write(10,*) 'col_cs%decomp_cpools_vr' 
      write(10,*) col_cs%decomp_cpools_vr
+     if ( use_c13 ) then
      write(10,*) 'c13_col_cs%ctrunc_vr' 
      write(10,*) c13_col_cs%ctrunc_vr
      write(10,*) 'c13_col_cs%decomp_cpools_vr' 
      write(10,*) c13_col_cs%decomp_cpools_vr
+     endif
      close(10)
 end subroutine 
 subroutine update_vars_dyn_hwcontent_init(gpu)
@@ -9696,13 +9723,13 @@ subroutine update_vars_dyn_hwcontent_init(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_dyn_hwcontent_init.txt"
      else
           file='cpu_dyn_hwcontent_init.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc veg_ws%h2ocan, & 
      !$acc veg_ws%h2ocan )
@@ -9745,13 +9772,13 @@ subroutine update_vars_dynSubgrid_wrapup_weight_changes(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_dynSubgrid_wrapup_weight_changes.txt"
      else
           file='cpu_dynSubgrid_wrapup_weight_changes.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc lun_pp%wttopounit, & 
      !$acc lun_pp%wtgcell, & 
@@ -9817,13 +9844,13 @@ subroutine update_vars_check_weights(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_check_weights.txt"
      else
           file='cpu_check_weights.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_pp%active, & 
      !$acc col_pp%wtgcell )
@@ -9856,13 +9883,13 @@ subroutine update_vars_setFilters(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_setFilters.txt"
      else
           file='cpu_setFilters.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      end if 
      !! CPU print statements !! 
      close(10)
@@ -9874,13 +9901,13 @@ subroutine update_vars_initialize_new_columns(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_initialize_new_columns.txt"
      else
           file='cpu_initialize_new_columns.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ws%h2osoi_liq, & 
      !$acc col_ws%h2osoi_ice, & 
@@ -9915,13 +9942,13 @@ subroutine update_vars_dyn_hwcontent_final(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_dyn_hwcontent_final.txt"
      else
           file='cpu_dyn_hwcontent_final.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc grc_wf%qflx_liq_dynbal, & 
      !$acc grc_wf%qflx_ice_dynbal )
@@ -9989,6 +10016,7 @@ subroutine update_vars_dyn_hwcontent_final(gpu)
      close(10)
 end subroutine 
 subroutine update_vars_dyn_cnbal_patch(gpu)
+     use clm_varctl      , only : use_c13, use_c14
      use GridcellDataType, only : c14_grc_cf 
      use ColumnDataType, only : col_cf 
      use ColumnDataType, only : c14_col_cf 
@@ -10013,13 +10041,13 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_dyn_cnbal_patch.txt"
      else
           file='cpu_dyn_cnbal_patch.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc c14_grc_cf%dwt_prod10c_gain, & 
      !$acc c14_grc_cf%dwt_prod100c_gain, & 
@@ -10246,6 +10274,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      !$acc veg_cs%deadstemc )
      end if 
      !! CPU print statements !! 
+     if ( use_c14 ) then
      write(10,*) 'c14_grc_cf%dwt_prod10c_gain' 
      write(10,*) c14_grc_cf%dwt_prod10c_gain
      write(10,*) 'c14_grc_cf%dwt_prod100c_gain' 
@@ -10256,6 +10285,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) c14_grc_cf%dwt_seedc_to_leaf
      write(10,*) 'c14_grc_cf%dwt_seedc_to_deadstem' 
      write(10,*) c14_grc_cf%dwt_seedc_to_deadstem
+     endif
      write(10,*) 'col_cf%dwt_prod10c_gain' 
      write(10,*) col_cf%dwt_prod10c_gain
      write(10,*) 'col_cf%dwt_livecrootc_to_cwdc' 
@@ -10274,6 +10304,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) col_cf%dwt_frootc_to_litr_met_c
      write(10,*) 'col_cf%dwt_slash_cflux' 
      write(10,*) col_cf%dwt_slash_cflux
+     if ( use_c14 ) then
      write(10,*) 'c14_col_cf%dwt_prod10c_gain' 
      write(10,*) c14_col_cf%dwt_prod10c_gain
      write(10,*) 'c14_col_cf%dwt_livecrootc_to_cwdc' 
@@ -10302,6 +10333,8 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) c14_veg_cf%dwt_seedc_to_leaf
      write(10,*) 'c14_veg_cf%dwt_seedc_to_deadstem' 
      write(10,*) c14_veg_cf%dwt_seedc_to_deadstem
+     endif
+     if ( use_c14 ) then
      write(10,*) 'c13_col_cf%dwt_prod10c_gain' 
      write(10,*) c13_col_cf%dwt_prod10c_gain
      write(10,*) 'c13_col_cf%dwt_livecrootc_to_cwdc' 
@@ -10320,6 +10353,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) c13_col_cf%dwt_frootc_to_litr_met_c
      write(10,*) 'c13_col_cf%dwt_slash_cflux' 
      write(10,*) c13_col_cf%dwt_slash_cflux
+     endif
      write(10,*) 'veg_nf%dwt_prod100n_gain' 
      write(10,*) veg_nf%dwt_prod100n_gain
      write(10,*) 'veg_nf%dwt_seedn_to_npool' 
@@ -10338,6 +10372,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) veg_nf%plant_nalloc
      write(10,*) 'veg_nf%avail_retransn' 
      write(10,*) veg_nf%avail_retransn
+     if ( use_c13 ) then
      write(10,*) 'c13_grc_cf%dwt_prod10c_gain' 
      write(10,*) c13_grc_cf%dwt_prod10c_gain
      write(10,*) 'c13_grc_cf%dwt_prod100c_gain' 
@@ -10348,6 +10383,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) c13_grc_cf%dwt_seedc_to_leaf
      write(10,*) 'c13_grc_cf%dwt_seedc_to_deadstem' 
      write(10,*) c13_grc_cf%dwt_seedc_to_deadstem
+     endif
      write(10,*) 'veg_pf%dwt_conv_pflux' 
      write(10,*) veg_pf%dwt_conv_pflux
      write(10,*) 'veg_pf%dwt_seedp_to_deadstem' 
@@ -10406,6 +10442,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) col_pf%dwt_frootp_to_litr_cel_p
      write(10,*) 'col_pf%dwt_deadcrootp_to_cwdp' 
      write(10,*) col_pf%dwt_deadcrootp_to_cwdp
+     if ( use_c13 ) then
      write(10,*) 'c13_veg_cf%dwt_prod10c_gain' 
      write(10,*) c13_veg_cf%dwt_prod10c_gain
      write(10,*) 'c13_veg_cf%dwt_prod100c_gain' 
@@ -10416,6 +10453,7 @@ subroutine update_vars_dyn_cnbal_patch(gpu)
      write(10,*) c13_veg_cf%dwt_seedc_to_leaf
      write(10,*) 'c13_veg_cf%dwt_seedc_to_deadstem' 
      write(10,*) c13_veg_cf%dwt_seedc_to_deadstem
+     endif
      write(10,*) 'col_nf%dwt_prod100n_gain' 
      write(10,*) col_nf%dwt_prod100n_gain
      write(10,*) 'col_nf%dwt_livecrootn_to_cwdn' 
@@ -10661,13 +10699,13 @@ subroutine update_vars_dyn_cnbal_column(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_dyn_cnbal_column.txt"
      else
           file='cpu_dyn_cnbal_column.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_cs%ctrunc_vr, & 
      !$acc col_cs%decomp_cpools_vr, & 
@@ -10720,13 +10758,13 @@ subroutine update_vars_CarbonStateUpdateDynPatch(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_CarbonStateUpdateDynPatch.txt"
      else
           file='cpu_CarbonStateUpdateDynPatch.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc grc_cs%seedc )
      !$acc update self(& 
@@ -10745,13 +10783,13 @@ subroutine update_vars_NitrogenStateUpdateDynPatch(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_NitrogenStateUpdateDynPatch.txt"
      else
           file='cpu_NitrogenStateUpdateDynPatch.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc col_ns%decomp_npools_vr )
      !$acc update self(& 
@@ -10770,13 +10808,13 @@ subroutine update_vars_PhosphorusStateUpdateDynPatch(gpu)
      implicit none 
      integer, intent(in) :: gpu
      character(len=256) :: file
-     if(gpu) then
+     if(gpu>0) then
           file="gpu_PhosphorusStateUpdateDynPatch.txt"
      else
           file='cpu_PhosphorusStateUpdateDynPatch.txt'
      end if
      open(UNIT=10, STATUS='REPLACE', FILE=file)
-     if(gpu) then
+     if(gpu>0) then
      !$acc update self(& 
      !$acc grc_ps%seedp )
      !$acc update self(& 

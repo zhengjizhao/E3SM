@@ -314,7 +314,6 @@ contains
              this_filter(nc)%lakec(fl) = c
           else
              fnl = fnl + 1
-            ! print *, "nc, c", nc, c
              this_filter(nc)%nolakec(fnl) = c
           end if
        end if

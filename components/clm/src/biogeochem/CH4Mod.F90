@@ -1443,11 +1443,6 @@ contains
       atmch4            = CH4ParamsInst%atmch4
       qflxlagd          = CH4ParamsInst%qflxlagd
       highlatfact       = CH4ParamsInst%highlatfact
-      print *, redoxlag
-      print *, redoxlag_vertical
-      print *, atmch4
-      print *, qflxlagd
-      print *, highlatfact
 
       !#py dtime = get_step_size()
       dtime_ch4 = dtime
@@ -1629,12 +1624,10 @@ contains
       ! Loop over saturated and unsaturated, non-lakes
       !------------------------------------------------
 
-      print *,"loop over satandunst"
       sat = 0
       !ITERATION : do while (sat <= 1 ) ! 0 == unsaturated; 1 = saturated
 
         ! Get index of water table
-         print *, "unsat"
           call get_jwt (bounds, num_soilc, filter_soilc, jwt, &
                soilstate_vars )
 
@@ -1696,7 +1689,6 @@ contains
               soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
 
-      print *, "sat"
       sat = 1
        do fc = 1, num_soilc
           c = filter_soilc(fc)

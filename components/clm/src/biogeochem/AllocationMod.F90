@@ -659,7 +659,6 @@ contains
          end if
 
          leaf_curmr(p) = leaf_mr(p) * curmr_ratio
-         print *, p, leaf_mr(p), leaf_curmr(p)
          leaf_xsmr(p) = leaf_mr(p) - leaf_curmr(p)
          froot_curmr(p) = froot_mr(p) * curmr_ratio
          froot_xsmr(p) = froot_mr(p) - froot_curmr(p)

@@ -163,7 +163,6 @@ contains
        numcft      =   2     ! actual # of crops
        crop_prog   = .false. ! If prognostic crops is turned on
     end if
-    print *, "nlevcan:",nlevcan
     ! For arrays containing all Patches (natural veg & crop), determine lower and upper bounds
     ! for (1) Patches on the natural vegetation landunit (includes bare ground, and includes
     ! crops if create_crop_landunit=false), and (2) CFTs on the crop landunit (no elements

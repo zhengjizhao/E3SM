@@ -787,17 +787,12 @@ contains
          grc_cinputs = &
               dwt_seedc_to_leaf_grc(g)     + &
               dwt_seedc_to_deadstem_grc(g)
-        print *, "grc_cinputs"
-        print *, g, dwt_seedc_to_leaf_grc(g), dwt_seedc_to_deadstem_grc(g)
 
          grc_coutputs = &
               dwt_conv_cflux_grc(g)        + &
               dwt_prod10c_gain_grc(g)      + &
               dwt_prod100c_gain_grc(g)
         
-        print *, "outputs:"
-        print *, g,dwt_conv_cflux_grc(g),dwt_prod10c_gain_grc(g),dwt_prod100c_gain_grc(g)
-        print *, "beg,end:",begcb_grc(g),endcb_grc(g) 
          errcb_grc(g) = (grc_cinputs - grc_coutputs)*dt - (endcb_grc(g) - begcb_grc(g))
 
          ! check for significant errors
@@ -807,8 +802,6 @@ contains
             err_index = g
          end if
 
-         print *,'error                 = ',errcb_grc(g)*dt
-         print *,'delta store           = ',endcb_grc(g)-begcb_grc(g)
       end do
 
       if (err_found) then

@@ -191,7 +191,6 @@ contains
         end if
 
         call vegcs_summary_acc(veg_cs,bounds, num_soilc, filter_soilc, num_soilp, filter_soilp, col_cs)
-        print *,"colcs summ in ECOSYSDYN"
         call colcs_summary_acc(col_cs,bounds, num_soilc, filter_soilc)
         if ( use_c13 ) then
            call vegcs_summary_acc(c13_veg_cs,bounds, num_soilc, filter_soilc, num_soilp, filter_soilp, c13_col_cs)

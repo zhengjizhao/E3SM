@@ -37,7 +37,7 @@ module atm2lndType
   !----------------------------------------------------
   type, public :: atm2lnd_type
       !DMR additions for CPL_BYPASS option
-      #ifdef CPL_BYPASS
+#ifdef CPL_BYPASS
       integer*2, pointer :: atm_input       (:,:,:,:) => null()  !Single-site meteorological input
       integer, pointer  :: loaded_bypassdata          => null()
       real(r8), pointer :: add_offsets            (:) => null()  !offsets for compressed met drivers
@@ -66,7 +66,7 @@ module atm2lndType
       real(r8), pointer ::  ndep1             (:,:,:) => null()
       real(r8), pointer ::  ndep2             (:,:,:) => null()
       real(r8), pointer ::  aerodata        (:,:,:,:) => null()
-      #endif
+#endif
 
      ! atm->lnd not downscaled
      real(r8), pointer :: forc_u_grc                    (:)   => null() ! atm wind speed, east direction (m/s)
@@ -188,7 +188,7 @@ contains
     begp = bounds%begp; endp= bounds%endp
 
     ! atm->lnd
-    #ifdef CPL_BYPASS
+#ifdef CPL_BYPASS
 
     !DMR - variables added for CPL_BYPASS option
     allocate(this%timelen                            (1:14))        ; this%timelen                       (:)   = ival_int
@@ -218,7 +218,7 @@ contains
     allocate(this%ndep1                          (144,96,1))        ; this%ndep1                     (:,:,:)   = ival
     allocate(this%ndep2                          (144,96,1))        ; this%ndep2                     (:,:,:)   = ival
     allocate(this%aerodata                   (14,144,96,14))        ; this%aerodata                (:,:,:,:)   = ival
-    #endif
+#endif
 
     !END DMR
     allocate(this%forc_u_grc                    (begg:endg))        ; this%forc_u_grc                    (:)   = ival
