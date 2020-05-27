@@ -19,12 +19,10 @@ subroutine update_acc_variables()
   use dynHarvestMod
   use CNStateType
   use C14DecayMod
-  use timeinfoMod
   use AllocationMod
 
   !---------- MaintenanceRespMod ------------!
   !$acc update device(br_mr_Inst)
-
   !---------- CNStateType ---------------!
   !$acc update device(fert_type  &
   !$acc               ,fert_continue &
@@ -98,23 +96,10 @@ subroutine update_acc_variables()
   !$acc       ,use_extralakelayers &
   !$acc       ,use_vichydro        &
   !$acc       ,use_century_decomp  &
-  !$acc       ,use_cn              &
-  !$acc       ,use_crop            &
-  !$acc       ,use_snicar_frc      &
-  !$acc       ,use_snicar_ad       &
-  !$acc       ,use_vancouver       &
-  !$acc       ,use_mexicocity      &
-  !$acc       ,use_noio            &
-  !$acc       ,use_var_soil_thick  &
-  !$acc       ,NFIX_PTASE_plant &
-  !$acc       ,tw_irr &
-  !$acc       ,use_erosion &
-  !$acc       ,ero_ccycle  &
-  !$acc       ,anoxia &
-  !$acc       , glc_do_dynglacier &
-  !$acc       , all_active &
+  !$acc       ,use_cn              )
   ! -------- pftvarcon ------------------!
-  !$acc       ,noveg                &
+  !$acc update device ( &
+  !$acc       noveg                &
   !$acc       ,ndllf_evr_tmp_tree   &
   !$acc       ,ndllf_evr_brl_tree   &
   !$acc       ,ndllf_dcd_brl_tree   &
@@ -331,15 +316,6 @@ subroutine update_acc_variables()
   !$acc     ,lake_no_ed &
   !------------ SoilWaterMovementMod ---------------- !
   !$acc    ,soilroot_water_method &
-  !-------------------TimeInfoMod ------------------- !
-  !$acc    ,  dtime_mod   &
-  !$acc    ,  dayspyr_mod &
-  !$acc    ,  year_mod    &
-  !$acc    ,  mon_mod     &
-  !$acc    ,  day_mod     &
-  !$acc    ,  secs_mod    &
-  !$acc    ,  nstep_mod   &
-  !$acc    ,  jday_mod    &
   !----------- AllocationMod ------------------- !
   !$acc    , nu_com_leaf_physiology &
   !$acc    , nu_com_root_kinetics   &

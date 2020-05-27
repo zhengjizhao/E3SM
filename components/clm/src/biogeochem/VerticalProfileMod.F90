@@ -89,7 +89,6 @@ contains
     real(r8) :: nfixation_prof_sum
     real(r8) :: pdep_prof_sum
     real(r8) :: delta = 1.e-10
-    character(len=32) :: subname = 'decomp_vertprofiles'
     !-----------------------------------------------------------------------
 
     associate(                                                               &
@@ -263,8 +262,8 @@ contains
          end do
          if ( ( abs(ndep_prof_sum - 1._r8) > delta ) .or.  ( abs(nfixation_prof_sum - 1._r8) > delta ) .or. &
               ( abs(pdep_prof_sum - 1._r8) > delta )  ) then
-            !#py write(iulog, *) 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
-            !#py write(iulog, *) 'c: ', c
+            print *, 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
+            print *, 'c: ', c
             !#py write(iulog, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
             !#py write(iulog, *) 'nfixation_prof: ', nfixation_prof(c,:)
             !#py write(iulog, *) 'ndep_prof: ', ndep_prof(c,:)
@@ -295,7 +294,7 @@ contains
          end do
          if ( ( abs(froot_prof_sum - 1._r8) > delta ) .or.  ( abs(croot_prof_sum - 1._r8) > delta ) .or. &
               ( abs(stem_prof_sum - 1._r8) > delta ) .or.  ( abs(leaf_prof_sum - 1._r8) > delta ) ) then
-            !#py write(iulog, *) 'profile sums: ', froot_prof_sum, croot_prof_sum, leaf_prof_sum, stem_prof_sum
+                print *, 'profile sums: ', froot_prof_sum, croot_prof_sum, leaf_prof_sum, stem_prof_sum
             !#py !#py call endrun(msg=' ERROR: sum-1 > delta'//errMsg(__FILE__, __LINE__))
          endif
       end do
@@ -528,8 +527,8 @@ contains
          end do
          if ( ( abs(ndep_prof_sum - 1._r8) > delta ) .or.  ( abs(nfixation_prof_sum - 1._r8) > delta ) .or. &
               ( abs(pdep_prof_sum - 1._r8) > delta )  ) then
-            !#py write(iulog, *) 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
-            !#py write(iulog, *) 'c: ', c
+            print *, 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
+            print *, 'c: ', c
             !#py write(iulog, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
             !#py write(iulog, *) 'nfixation_prof: ', nfixation_prof(c,:)
             !#py write(iulog, *) 'ndep_prof: ', ndep_prof(c,:)

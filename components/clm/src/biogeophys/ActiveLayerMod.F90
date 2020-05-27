@@ -79,13 +79,11 @@ contains
       ! on a set annual timestep, update annual maxima
       ! make this 1 January for NH columns, 1 July for SH columns
       print *, "active LAYER:", mon,day, sec, dtime
-      print *, num_soilc, filter_soilc(1)
       if ( (mon .eq. 1) .and. (day .eq. 1) .and. ( sec / int(dtime) .eq. 1) ) then
          do fc = 1,num_soilc
             c = filter_soilc(fc)
             g = col_pp%gridcell(c)
             if ( grc_pp%lat(g) > 0.d0 ) then
-               print *, "altmax:",altmax(c)
                altmax_lastyear(c) = altmax(c)
                altmax_lastyear_indx(c) = altmax_indx(c)
                altmax(c) = 0.d0
@@ -113,8 +111,6 @@ contains
          ! start from base of soil and search upwards for first thawed layer.
          ! note that this will put talik in with active layer
          ! a different way of doing this could be to keep track of how long a given layer has ben frozen for, and define ALT as the first layer that has been frozen for less than 2 years.
-         print *,fc, c, nlevgrnd
-         print *, t_soisno(c,nlevgrnd)
          if (t_soisno(c,nlevgrnd) > SHR_CONST_TKFRZ ) then
             alt(c) = zsoi(nlevgrnd)
             alt_indx(c) = nlevgrnd

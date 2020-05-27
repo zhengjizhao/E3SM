@@ -432,7 +432,7 @@ contains
              n_irrig_steps_left(p) = n_irrig_steps_left(p) - 1
           else
              qflx_irrig(p) = 0._r8
-			       qflx_irrig_grid(g) = 0._r8
+             qflx_irrig_grid(g) = 0._r8
           end if
 
           ! Add irrigation water directly onto ground (bypassing canopy interception)
@@ -479,7 +479,7 @@ contains
                qflx_over_supply(p) = 0
 
                if (qflx_irrig(p) > 0) then
-                 !#py write(iulog,*)'warning irrigp>0 but irrigg is not',qflx_irrig(p),qflx_irrig_grid(g)
+                 print *, 'warning irrigp>0 but irrigg is not',qflx_irrig(p),qflx_irrig_grid(g)
                end if
              end if
 

@@ -466,7 +466,7 @@ end subroutine hist_update_hbuf_field_1d_gpu
     logical  :: check_active            ! true => check 'active' flag of each point (this refers to a point being active, NOT a history field being active)
     logical  :: valid                   ! true => history operation is valid
     logical  :: map2gcell               ! true => map clm pointer field to gridcell
-    logical           :: field_allocated! whether 'field' was allocated here
+    logical  :: field_allocated         ! whether 'field' was allocated here
     logical , pointer :: active(:)      ! flag saying whether each point is active (used for type1d = landunit/column/pft)
                                         !(this refers to a point being active, NOT a history field being active)
     real(r8) :: field_gcell(bounds%begg:bounds%endg,num2d) ! gricell level field (used if mapping to gridcell is done)
@@ -831,6 +831,7 @@ end subroutine hist_update_hbuf_field_1d_gpu
                         tape_gpu(t)%hlist(f)%hbuf(:,:) = 0d0 
                         tape_gpu(t)%hlist(f)%nacs(:,:) = 0
                  end do
+                !$acc update device(tape_gpu(t))
                 end if  
           end do 
 

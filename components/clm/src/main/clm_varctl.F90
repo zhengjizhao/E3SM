@@ -186,10 +186,10 @@ module clm_varctl
 
   ! atmospheric CO2 molar ratio (by volume) (umol/mol)
   real(r8), public :: co2_ppmv     = 355._r8            !
-
+  !$acc declare copyin(co2_ppmv)
   ! Use constant climate during transient run (CPL_BYPASS only)
   logical, public :: const_climate_hist  = .false.
-
+  !$acc declare copyin(const_climate_hist)
 
   !----------------------------------------------------------
   ! C isotopes
