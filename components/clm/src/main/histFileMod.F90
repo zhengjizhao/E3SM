@@ -1076,8 +1076,6 @@ contains
 
 
 
-    !write(101, *) tape(t)%hlist(f)%field%name ! for testing
-    !write(101, *) "hpindex:",hpindex,field(1) ! for testing
 
     ! set variables to check weights when allocate all pfts
 
@@ -2823,9 +2821,19 @@ contains
           ! Write history output.  Always output land and ocean runoff on xy grid.
 
           if (numdims == 1) then
+             ! ncd_io cannot handle 'Infinity' (but Nan is OK),
+             ! in which case pio will throw out an ERROR with no clue of what variable
+             ! (example: NetCDF: Numeric conversion not representable)
+             ! because pio doesn't provide useful message.
+             if (ANY(hist1do>HUGE(0._r8))) then
+                 print *, " hfields_write CRASH below: 'Infinity' in ", varname, hist1do
+             endif
              call ncd_io(flag='write', varname=varname, &
                   dim1name=type1d_out, data=hist1do, ncid=nfid(t), nt=nt)
           else
+             if (ANY(histo>HUGE(0._r8))) then
+                 print *, " hfields_write CRASH below: 'Infinity' in ", varname, histo
+             endif
              call ncd_io(flag='write', varname=varname, &
                   dim1name=type1d_out, data=histo, ncid=nfid(t), nt=nt)
           end if
