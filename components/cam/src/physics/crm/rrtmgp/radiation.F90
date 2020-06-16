@@ -1417,9 +1417,6 @@ contains
 
                ! Initialize cloud optics objects
                call handle_error(cld_optics_sw%alloc_2str( &
-                  ncol, nlev_rad, k_dist_sw, name='cld_optics_sw' &
-               ))
-               call handle_error(cld_optics_sw%alloc_2str( &
                   ncol_tot, nlev_rad, k_dist_sw, name='cld_optics_sw' &
                ))
                call handle_error(cld_optics_lw%alloc_1scl( &
@@ -1525,7 +1522,7 @@ contains
                      ! Do shortwave cloud and aerosol optics calculations
                      if (radiation_do('sw')) then
                         ! Do cloud optics
-                        call t_startf('rad_cloud_optics_sw')
+                        call t_startf('rad_get_cloud_optics_sw')
                         call get_cloud_optics_sw( &
                            ncol, pver, nswbands, do_snow_optics(), &
                            cld, cldfsnow, iclwp, iciwp, icswp, &
@@ -1533,14 +1530,18 @@ contains
                            cld_tau_bnd_sw, cld_ssa_bnd_sw, cld_asm_bnd_sw, &
                            liq_tau_bnd_sw, ice_tau_bnd_sw, snw_tau_bnd_sw &
                         )
+                        call t_stopf('rad_get_cloud_optics_sw')
+                        call t_startf('rad_sample_cloud_optics_sw')
                         call sample_cloud_optics_sw( &
                            ncol, pver, nswgpts, k_dist_sw%get_gpoint_bands(), &
                            state%pmid, cld, cldfsnow, &
                            cld_tau_bnd_sw, cld_ssa_bnd_sw, cld_asm_bnd_sw, &
                            cld_tau_gpt_sw, cld_ssa_gpt_sw, cld_asm_gpt_sw &
                         )
+                        call t_stopf('rad_sample_cloud_optics_sw')
+                        call t_startf('rad_output_cloud_optics_sw')
                         call output_cloud_optics_sw(state, cld_tau_bnd_sw, cld_ssa_bnd_sw, cld_asm_bnd_sw)
-                        call t_stopf('rad_cloud_optics_sw')
+                        call t_stopf('rad_output_cloud_optics_sw')
                         ! Do aerosol optics
                         call t_startf('rad_aerosol_optics_sw')
                         call set_aerosol_optics_sw( &
@@ -1553,19 +1554,23 @@ contains
                      ! Longwave cloud and aerosol optics
                      if (radiation_do('lw')) then
                         ! Do cloud optics
-                        call t_startf('rad_cloud_optics_lw')
+                        call t_startf('rad_get_cloud_optics_lw')
                         call get_cloud_optics_lw( &
                            ncol, pver, nlwbands, do_snow_optics(), cld, cldfsnow, iclwp, iciwp, icswp, &
                            lambdac, mu, dei, des, rei, &
                            cld_tau_bnd_lw, liq_tau_bnd_lw, ice_tau_bnd_lw, snw_tau_bnd_lw &
                         )
+                        call t_stopf('rad_get_cloud_optics_lw')
+                        call t_startf('rad_sample_cloud_optics_lw')
                         call sample_cloud_optics_lw( &
                            ncol, pver, nlwgpts, k_dist_lw%get_gpoint_bands(), &
                            state%pmid, cld, cldfsnow, &
                            cld_tau_bnd_lw, cld_tau_gpt_lw &
                         )
+                        call t_stopf('rad_sample_cloud_optics_lw')
+                        call t_startf('rad_output_cloud_optics_lw')
                         call output_cloud_optics_lw(state, cld_tau_bnd_lw)
-                        call t_stopf('rad_cloud_optics_lw')
+                        call t_stopf('rad_output_cloud_optics_lw')
                         ! Do aerosol optics
                         call t_startf('rad_aerosol_optics_lw')
                         call set_aerosol_optics_lw(icall, state, pbuf, is_cmip6_volc, aer_tau_bnd_lw)
@@ -1648,17 +1653,15 @@ contains
                call average_packed_array(fluxes_allsky_all%flux_dn    (1:ncol_tot,:), fluxes_allsky%flux_dn    (1:ncol,:))
                call average_packed_array(fluxes_allsky_all%flux_net   (1:ncol_tot,:), fluxes_allsky%flux_net   (1:ncol,:))
                call average_packed_array(fluxes_allsky_all%flux_dn_dir(1:ncol_tot,:), fluxes_allsky%flux_dn_dir(1:ncol,:))
-               do iband = 1,nswbands
-                  call average_packed_array(fluxes_allsky_all%bnd_flux_up    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_up    (1:ncol,:,iband))
-                  call average_packed_array(fluxes_allsky_all%bnd_flux_dn    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_dn    (1:ncol,:,iband))
-                  call average_packed_array(fluxes_allsky_all%bnd_flux_net   (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_net   (1:ncol,:,iband))
-                  call average_packed_array(fluxes_allsky_all%bnd_flux_dn_dir(1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_dn_dir(1:ncol,:,iband))
-               end do
                call average_packed_array(fluxes_clrsky_all%flux_up    (1:ncol_tot,:), fluxes_clrsky%flux_up    (1:ncol,:))
                call average_packed_array(fluxes_clrsky_all%flux_dn    (1:ncol_tot,:), fluxes_clrsky%flux_dn    (1:ncol,:))
                call average_packed_array(fluxes_clrsky_all%flux_net   (1:ncol_tot,:), fluxes_clrsky%flux_net   (1:ncol,:))
                call average_packed_array(fluxes_clrsky_all%flux_dn_dir(1:ncol_tot,:), fluxes_clrsky%flux_dn_dir(1:ncol,:))
                do iband = 1,nswbands
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_up    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_up    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_dn    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_dn    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_net   (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_net   (1:ncol,:,iband))
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_dn_dir(1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_dn_dir(1:ncol,:,iband))
                   call average_packed_array(fluxes_clrsky_all%bnd_flux_up    (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_up    (1:ncol,:,iband))
                   call average_packed_array(fluxes_clrsky_all%bnd_flux_dn    (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_dn    (1:ncol,:,iband))
                   call average_packed_array(fluxes_clrsky_all%bnd_flux_net   (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_net   (1:ncol,:,iband))
@@ -1667,7 +1670,9 @@ contains
                call t_stopf('rad_average_fluxes_sw')
 
                ! Send fluxes to history buffer
+               call t_startf('rad_output_fluxes_sw')
                call output_fluxes_sw(icall, state, fluxes_allsky, fluxes_clrsky, qrs,  qrsc)
+               call t_stopf('rad_output_fluxes_sw')
 
                ! Map to CRM columns
                if (use_MMF) then
@@ -1758,10 +1763,20 @@ contains
                call average_packed_array(fluxes_clrsky_all%flux_up (1:ncol_tot,:), fluxes_clrsky%flux_up (1:ncol,:))
                call average_packed_array(fluxes_clrsky_all%flux_dn (1:ncol_tot,:), fluxes_clrsky%flux_dn (1:ncol,:))
                call average_packed_array(fluxes_clrsky_all%flux_net(1:ncol_tot,:), fluxes_clrsky%flux_net(1:ncol,:))
+               do iband = 1,nlwbands
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_up    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_up    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_dn    (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_dn    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_allsky_all%bnd_flux_net   (1:ncol_tot,:,iband), fluxes_allsky%bnd_flux_net   (1:ncol,:,iband))
+                  call average_packed_array(fluxes_clrsky_all%bnd_flux_up    (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_up    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_clrsky_all%bnd_flux_dn    (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_dn    (1:ncol,:,iband))
+                  call average_packed_array(fluxes_clrsky_all%bnd_flux_net   (1:ncol_tot,:,iband), fluxes_clrsky%bnd_flux_net   (1:ncol,:,iband))
+               end do
                call t_stopf('rad_average_fluxes_lw')
                          
                ! Send fluxes to history buffer
+               call t_startf('rad_output_fluxes_lw')
                call output_fluxes_lw(icall, state, fluxes_allsky, fluxes_clrsky, qrl, qrlc)
+               call t_startf('rad_output_fluxes_lw')
 
                ! Map to CRM columns
                if (use_MMF) then
