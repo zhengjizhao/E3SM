@@ -1,3 +1,18 @@
+! Define a macro to index into a 1d array with size nx*ny*nz; used to pack 3D
+! CRM data dimensioned (ncol,crm_nx_rad,crm_ny_rad) into arrays of size
+! (ncol*crm_nx_rad*crm_ny_rad) to expose more parallelism in RRTMGP without
+! refactoring the code. This would be used as follows:
+!
+!    do iy = 1,ny
+!       do ix = 1,nx
+!          do ic = 1,nc
+!             array1d(_IDX1D(ic,ix,iy,nc,nx,ny)) = array3d(ic,ix,iy)
+!          end do
+!       end do
+!    end do
+!
+#define _IDX1D(i1,i2,i3,n1,n2,n3) (i3-1) * (n2 * n1) + (i2 - 1) * n1 + i1
+
 module radiation
 !---------------------------------------------------------------------------------
 ! Purpose:
@@ -1450,7 +1465,6 @@ contains
                ! Loop over CRM columns; call routines designed to work with
                ! pbuf/state over ncol columns for each CRM column index, and pack
                ! into arrays dimensioned ncol_tot = ncol * ncrms
-               j = 1
                do iy = 1,crm_ny_rad
                   do ix = 1,crm_nx_rad
 
@@ -1460,7 +1474,7 @@ contains
                         do iz = 1,crm_nz
                            ilev = pver - iz + 1
                            do ic = 1,ncol
-                              ! NOTE: I do not think these are used by optics
+                              ! NOTE: I do not think these are used by optics, maybe by aerosol?
                               state%q(ic,ilev,ixcldliq) = crm_qc(ic,ix,iy,iz)
                               state%q(ic,ilev,ixcldice) = crm_qi(ic,ix,iy,iz)
                               state%q(ic,ilev,ixwatvap) = crm_qv(ic,ix,iy,iz)
@@ -1580,6 +1594,7 @@ contains
                      ! Pack data
                      call t_startf('rad_pack_columns')
                      do ic = 1,ncol
+                        j = _IDX1D(ic,ix,iy,ncol,crm_nx_rad,crm_ny_rad)
                         coszrs_all(j) = coszrs(ic)
                         albedo_direct_all(:,j) = albedo_direct_col(:,ic)
                         albedo_diffuse_all(:,j) = albedo_diffuse_col(:,ic)
@@ -1596,7 +1611,6 @@ contains
                         aer_optics_sw%ssa(j,ktop:kbot,:) = aer_ssa_bnd_sw(ic,:,:)
                         aer_optics_sw%g  (j,ktop:kbot,:) = aer_asm_bnd_sw(ic,:,:)
                         vmr_all(:,j,:) = vmr_col(:,ic,:)
-                        j = j + 1
                      end do  ! ic = 1,ncol
                      call t_stopf('rad_pack_columns')
 
@@ -1676,16 +1690,15 @@ contains
 
                ! Map to CRM columns
                if (use_MMF) then
-                  j = 1
                   do iy = 1,crm_ny_rad
                      do ix = 1,crm_nx_rad
                         do ic = 1,ncol
                            do iz = 1,crm_nz
                               ilev = pver - iz + 1
+                              j = _IDX1D(ic,ix,iy,ncol,crm_nx_rad,crm_ny_rad)
                               crm_qrs (ic,ix,iy,iz) = qrs_all(j,ilev)
                               crm_qrsc(ic,ix,iy,iz) = qrsc_all(j,ilev)
                            end do
-                           j = j + 1
                         end do
                      end do
                   end do
@@ -1780,16 +1793,15 @@ contains
 
                ! Map to CRM columns
                if (use_MMF) then
-                  j = 1
                   do iy = 1,crm_ny_rad
                      do ix = 1,crm_nx_rad
                         do ic = 1,ncol
                            do iz = 1,crm_nz
                               ilev = pver - iz + 1
+                              j = _IDX1D(ic,ix,iy,ncol,crm_nx_rad,crm_ny_rad)
                               crm_qrl(ic,ix,iy,iz) = qrl_all(j,ilev)
                               crm_qrlc(ic,ix,iy,iz) = qrlc_all(j,ilev)
                            end do
-                           j = j + 1
                         end do
                      end do
                   end do
@@ -2129,12 +2141,11 @@ contains
       call assert(size(array_packed,1) == ncol_tot, 'size(array_packed,1) /= ncol_tot')
       call assert(size(array_packed,2) == size(array_avg,2), 'size(array_packed,2) /= size(array_avg,2)')
       do iz = 1,size(array_packed,2)
-         j = 1
          do iy = 1,crm_ny_rad
             do ix = 1,crm_nx_rad
                do ic = 1,ncol
+                  j = _IDX1D(ic,ix,iy,ncol,crm_nx_rad,crm_ny_rad)
                   array_avg(ic,iz) = array_avg(ic,iz) + array_packed(j,iz) * area_factor
-                  j = j + 1
                end do
             end do
          end do 
