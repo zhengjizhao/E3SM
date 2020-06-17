@@ -6,6 +6,7 @@ module cam_optics
    use rad_constituents, only: icecldoptics, liqcldoptics
    use cam_abortutils, only: endrun
    use ppgrid, only: pcols, pver
+   use perf_mod, only: t_startf, t_stopf
 
    implicit none
    private
@@ -397,10 +398,12 @@ contains
       combined_cld(1:ncol,1:nlev) = max(cld(1:ncol,1:nlev), &
                                         cldfsnow(1:ncol,1:nlev))
       ! Get stochastic subcolumn cloud mask
+      call t_startf('rad_mcica_subcol_mask_sw')
       call mcica_subcol_mask(ngpt, ncol, nlev, changeseed, &
                              pmid(1:ncol,1:nlev), &
                              combined_cld(1:ncol,1:nlev), &
                              iscloudy(1:ngpt,1:ncol,1:nlev))
+      call t_stopf('rad_mcica_subcol_mask_sw')
       ! Generate subcolumns for homogeneous clouds
       do igpt = 1,ngpt
          do ilev = 1,nlev
@@ -473,10 +476,12 @@ contains
                                         cldfsnow(1:ncol,1:nlev))
 
       ! Get the stochastic subcolumn cloudy mask
+      call t_startf('rad_mcica_subcol_mask_sw')
       call mcica_subcol_mask(ngpt, ncol, nlev, changeseed, &
                              pmid(1:ncol,1:nlev), &
                              combined_cld(1:ncol,1:nlev), &
                              iscloudy(1:ngpt,1:ncol,1:nlev))
+      call t_stopf('rad_mcica_subcol_mask_sw')
 
       ! Map optics to g-points, selecting a single subcolumn for each
       ! g-point. This implementation generates homogeneous clouds, but it would be
@@ -535,11 +540,14 @@ contains
       tau_w = 0._r8
       tau_w_g = 0._r8
       tau_w_f = 0._r8
+      call t_startf('rad_aer_rad_props_sw')
       call aer_rad_props_sw(icall, state, pbuf, &
                             count(night_indices > 0), night_indices, is_cmip6_volc, &
                             tau, tau_w, tau_w_g, tau_w_f)
+      call t_stopf('rad_aer_rad_props_sw')
 
       ! Extract quantities from products
+      call t_startf('rad_aer_divide_optics_sw')
       do icol = 1,ncol
          ! Copy cloud optical depth over directly
          tau_out(icol,1:pver,1:nswbands) = tau(icol,1:pver,1:nswbands)
@@ -558,10 +566,12 @@ contains
             asm_out(icol,1:pver,1:nswbands) = 0._r8
          endwhere
       end do
+      call t_stopf('rad_aer_divide_optics_sw')
 
       ! We need to fix band ordering because the old input files assume RRTMG band
       ! ordering, but this has changed in RRTMGP.
       ! TODO: fix the input files themselves!
+      call t_startf('rad_aer_fix_band_order_sw')
       do icol = 1,size(tau_out,1)
          do ilay = 1,size(tau_out,2)
             tau_out(icol,ilay,:) = reordered(tau_out(icol,ilay,:), map_rrtmg_to_rrtmgp_swbands)
@@ -569,6 +579,7 @@ contains
             asm_out(icol,ilay,:) = reordered(asm_out(icol,ilay,:), map_rrtmg_to_rrtmgp_swbands)
          end do
       end do
+      call t_stopf('rad_aer_fix_band_order_sw')
 
    end subroutine set_aerosol_optics_sw
 
@@ -594,7 +605,9 @@ contains
 
       ! Get aerosol absorption optical depth from CAM routine
       tau = 0._r8
+      call t_startf('rad_aer_rad_props_lw')
       call aer_rad_props_lw(is_cmip6_volc, icall, state, pbuf, tau)
+      call t_stopf('rad_aer_rad_props_lw')
 
    end subroutine set_aerosol_optics_lw
 
