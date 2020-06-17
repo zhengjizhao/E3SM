@@ -596,9 +596,13 @@ subroutine modal_aero_sw(list_idx, state, pbuf, nnite, idxnite, is_cmip6_volc, e
       if (istat > 0) then
          call endrun('modal_aero_sw: allocation FAILURE: arrays for diagnostic calcs')
       end if
+      call t_startf('modal_aero_calcsize_diag_sw')
       call modal_aero_calcsize_diag(state, pbuf, list_idx, dgnumdry_m)  
+      call t_stopf('modal_aero_calcsize_diag_sw')
+      call t_startf('modal_aero_wateruptake_dr_sw')
       call modal_aero_wateruptake_dr(state, pbuf, list_idx, dgnumdry_m, dgnumwet_m, &
                                      qaerwat_m, wetdens_m)
+      call t_stopf('modal_aero_wateruptake_dr_sw')
    endif
 
    do m = 1, nmodes

@@ -25,6 +25,7 @@ use ref_pres,     only: clim_modal_aero_top_lev
 use cam_abortutils,       only: endrun
 use tropopause,           only : tropopause_find
 use cam_logfile,          only: iulog
+use perf_mod,             only: t_startf, t_stopf
 
 implicit none
 private
@@ -262,8 +263,10 @@ subroutine aer_rad_props_sw(list_idx, state, pbuf,  nnite, idxnite, is_cmip6_vol
 
    ! Contributions from modal aerosols.
    if (nmodes > 0) then
+      call t_startf('modal_aero_sw')
       call modal_aero_sw(list_idx, state, pbuf, nnite, idxnite, is_cmip6_volc, ext_cmip6_sw(:,:,idx_sw_diag), trop_level, &
                          tau, tau_w, tau_w_g, tau_w_f)
+      call t_stopf('modal_aero_sw')
    else
       tau    (1:ncol,:,:) = 0._r8
       tau_w  (1:ncol,:,:) = 0._r8
