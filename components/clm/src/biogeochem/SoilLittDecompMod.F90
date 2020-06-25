@@ -629,21 +629,10 @@ contains
     type(photosyns_type)     , intent(in)    :: photosyns_vars
     type(canopystate_type)   , intent(in)    :: canopystate_vars
     type(soilstate_type)     , intent(in)    :: soilstate_vars
-    !type(temperature_type)   , intent(in)    :: temperature_vars
-    !type(waterstate_type)    , intent(in)    :: waterstate_vars
     type(cnstate_type)       , intent(inout) :: cnstate_vars
     type(ch4_type)           , intent(in)    :: ch4_vars
-    !type(carbonstate_type)   , intent(inout) :: carbonstate_vars
-    !type(carbonflux_type)    , intent(inout) :: carbonflux_vars
-    !type(carbonflux_type)    , intent(inout) :: c13_carbonflux_vars
-    !type(carbonflux_type)    , intent(inout) :: c14_carbonflux_vars
-    !type(nitrogenstate_type) , intent(inout) :: nitrogenstate_vars
-    !type(nitrogenflux_type)  , intent(inout) :: nitrogenflux_vars
     type(crop_type)          , intent(inout) :: crop_vars
     type(atm2lnd_type)       , intent(in)    :: atm2lnd_vars
-    !! add phosphorus --
-    !type(phosphorusstate_type) , intent(inout) :: phosphorusstate_vars
-    !type(phosphorusflux_type)  , intent(inout) :: phosphorusflux_vars
     real(r8), intent(in) :: dt                                           ! time step (seconds)
 
     !

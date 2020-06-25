@@ -73,20 +73,26 @@ contains
     ! !LOCAL VARIABLES:
     integer :: g   ! grid cell index
     !-------------------------------------------------------------------------------
-
+    associate( &
+             liq1 => grc_ws%liq1 ,&
+             ice1 => grc_ws%ice1 ,&
+             heat1 => grc_es%heat1 ,&
+             liquid_water_temp1 => grc_es%liquid_water_temp1 &
+             )
     call dyn_water_content(bounds,                                        &
          num_nolakec, filter_nolakec,                                     &
          num_lakec, filter_lakec,                                         &
          soilhydrology_vars, lakestate_vars,             &
-         liquid_mass = grc_ws%liq1, &
-         ice_mass    = grc_ws%ice1)
+         liquid_mass = liq1(bounds%begg:bounds%endg), &
+         ice_mass    = ice1(bounds%begg:bounds%endg))
 
     call dyn_heat_content( bounds,                                        &
          num_nolakec, filter_nolakec,                                     &
          num_lakec, filter_lakec,                                         &
          urbanparams_vars, soilstate_vars, soilhydrology_vars,            &
-         heat_grc = grc_es%heat1,  &
-         liquid_water_temp_grc = grc_es%liquid_water_temp1)
+         heat_grc = heat1(bounds%begg:bounds%endg),  &
+         liquid_water_temp_grc = liquid_water_temp1(bounds%begg:bounds%endg))
+    end associate
 
   end subroutine dyn_hwcontent_init
 
@@ -124,6 +130,15 @@ contains
     real(r8) :: delta_heat(bounds%begg:bounds%endg) ! change in gridcell heat content
     !---------------------------------------------------------------------------
 
+    associate( &
+             liq1 => grc_ws%liq1 ,&
+             ice1 => grc_ws%ice1 ,&
+             heat1 => grc_es%heat1 ,&
+             liq2 => grc_ws%liq2 ,&
+             ice2 => grc_ws%ice2 ,&
+             heat2 => grc_es%heat2 ,&
+             liquid_water_temp2 => grc_es%liquid_water_temp2 &
+             )
     begg = bounds%begg
     endg = bounds%endg
 
@@ -131,15 +146,15 @@ contains
          num_nolakec, filter_nolakec, &
          num_lakec, filter_lakec, &
          soilhydrology_vars, lakestate_vars, &
-         liquid_mass = grc_ws%liq2, &
-         ice_mass    = grc_ws%ice2)
+         liquid_mass = liq2(bounds%begg:bounds%endg), &
+         ice_mass    = ice2(bounds%begg:bounds%endg))
 
     call dyn_heat_content( bounds,                                &
          num_nolakec, filter_nolakec, &
          num_lakec, filter_lakec, &
          urbanparams_vars, soilstate_vars, soilhydrology_vars, &
-         heat_grc = grc_es%heat2, &
-         liquid_water_temp_grc = grc_es%liquid_water_temp2)
+         heat_grc = heat2(bounds%begg:bounds%endg), &
+         liquid_water_temp_grc = liquid_water_temp2(bounds%begg:bounds%endg))
 
     !TODO: FIX
     if (.false.) then !get_for_testing_zero_dynbal_fluxes()) then
@@ -150,37 +165,16 @@ contains
       end do
     else
        do g = begg, endg
-          delta_liq(g)  = grc_ws%liq2(g) - grc_ws%liq1(g)
-          delta_ice(g)  = grc_ws%ice2(g) - grc_ws%ice1(g)
-          delta_heat(g) = grc_es%heat2(g) - grc_es%heat1(g)
+          delta_liq(g)  = liq2(g) - liq1(g)
+          delta_ice(g)  = ice2(g) - ice1(g)
+          delta_heat(g) = heat2(g) - heat1(g)
           grc_wf%qflx_liq_dynbal (g) = delta_liq(g)/dtime
           grc_wf%qflx_ice_dynbal (g) = delta_ice(g)/dtime
           grc_ef%eflx_dynbal    (g) = delta_heat(g)/dtime
        end do
     end if
-
-    !call AdjustDeltaHeatForDeltaLiq( &
-    !     bounds, &
-    !     delta_liq = delta_liq(bounds%begg:bounds%endg), &
-    !     liquid_water_temp1 = temperature_vars%liquid_water_temp1_grc(bounds%begg:bounds%endg), &
-    !     liquid_water_temp2 = temperature_vars%liquid_water_temp2_grc(bounds%begg:bounds%endg), &
-    !     delta_heat = delta_heat(bounds%begg:bounds%endg))
-
-    !call grc_wf%qflx_liq_dynbal_dribbler%set_curr_delta(bounds, &
-    !     delta_liq(begg:endg))
-    !call grc_wf%qflx_liq_dynbal_dribbler%get_curr_flux(bounds, &
-    !     grc_wf%qflx_liq_dynbal(begg:endg))
-
-    !call grc_wf%qflx_ice_dynbal_dribbler%set_curr_delta(bounds, &
-    !     delta_ice(begg:endg))
-    !call grc_wf%qflx_ice_dynbal_dribbler%get_curr_flux(bounds, &
-    !     grc_wf%qflx_ice_dynbal(begg:endg))
-
-    !call energyflux_vars%eflx_dynbal_dribbler%set_curr_delta(bounds, &
-    !     delta_heat(begg:endg))
-    !call energyflux_vars%eflx_dynbal_dribbler%get_curr_flux(bounds, &
-    !     energyflux_vars%eflx_dynbal_grc(begg:endg))
-
+    
+    end associate
   end subroutine dyn_hwcontent_final
 
   !-----------------------------------------------------------------------
@@ -213,23 +207,23 @@ contains
     !-----------------------------------------------------------------------
     call ComputeLiqIceMassNonLake(bounds, num_nolakec, filter_nolakec, &
          soilhydrology_vars,  &
-         liquid_mass_col, &
-         ice_mass_col)
+         liquid_mass_col(bounds%begc:bounds%endc), &
+         ice_mass_col(bounds%begc:bounds%endc))
 
     call ComputeLiqIceMassLake(bounds, num_lakec, filter_lakec, &
          lakestate_vars, &
-         liquid_mass_col, &
-         ice_mass_col)
+         liquid_mass_col(bounds%begc:bounds%endc), &
+         ice_mass_col(bounds%begc:bounds%endc))
 
     call c2g(bounds, &
-         carr = liquid_mass_col, &
-         garr = liquid_mass, &
+         carr = liquid_mass_col(bounds%begc:bounds%endc), &
+         garr = liquid_mass(bounds%begg:bounds%endg), &
          c2l_scale_type = 0, &
          l2g_scale_type = 0)
 
     call c2g(bounds, &
-         carr = ice_mass_col, &
-         garr = ice_mass, &
+         carr = ice_mass_col(bounds%begc:bounds%endc), &
+         garr = ice_mass(bounds%begg:bounds%endg), &
          c2l_scale_type = 0, &
          l2g_scale_type = 0)
 
@@ -287,31 +281,31 @@ contains
 
     call ComputeHeatNonLake(bounds, num_nolakec, filter_nolakec, &
          urbanparams_vars, soilstate_vars, soilhydrology_vars, &
-         heat = heat_col, &
-         heat_liquid = heat_liquid_col, &
-         cv_liquid = cv_liquid_col)
+         heat = heat_col(bounds%begc:bounds%endc), &
+         heat_liquid = heat_liquid_col(bounds%begc:bounds%endc), &
+         cv_liquid = cv_liquid_col(bounds%begc:bounds%endc))
 
     call ComputeHeatLake(bounds, num_lakec, filter_lakec, &
          soilstate_vars, &
-         heat = heat_col, &
-         heat_liquid = heat_liquid_col, &
-         cv_liquid = cv_liquid_col)
+         heat = heat_col(bounds%begc:bounds%endc), &
+         heat_liquid = heat_liquid_col(bounds%begc:bounds%endc), &
+         cv_liquid = cv_liquid_col(bounds%begc:bounds%endc))
 
     call c2g(bounds, &
-         carr = heat_col, &
-         garr = heat_grc, &
+         carr = heat_col(bounds%begc:bounds%endc), &
+         garr = heat_grc(bounds%begg:bounds%endg), &
          c2l_scale_type = 0, &
          l2g_scale_type = 0)
 
     call c2g(bounds, &
-         carr = heat_liquid_col, &
-         garr = heat_liquid_grc, &
+         carr = heat_liquid_col(bounds%begc:bounds%endc), &
+         garr = heat_liquid_grc(bounds%begg:bounds%endg), &
          c2l_scale_type = 0, &
          l2g_scale_type = 0)
 
     call c2g(bounds, &
-         carr = cv_liquid_col, &
-         garr = cv_liquid_grc, &
+         carr = cv_liquid_col(bounds%begc:bounds%endc), &
+         garr = cv_liquid_grc(bounds%begg:bounds%endg), &
          c2l_scale_type = 0, &
          l2g_scale_type = 0)
 

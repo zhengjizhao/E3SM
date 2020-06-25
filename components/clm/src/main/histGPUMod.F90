@@ -174,27 +174,30 @@ contains
     type(bounds_type), intent(in) :: bounds !<---- Currently bounds_proc
     !
     ! !LOCAL VARIABLES:
-    integer :: t                   ! tape index
+    integer :: t , hp              ! tape index
     integer :: f                   ! field index
     integer :: numdims             ! number of dimensions
     integer :: num2d               ! size of second dimension (e.g. number of vertical levels)
-    !-----------------------------------------------------------------------
-    !$acc parallel loop vector vector_length(1) private(t,f,numdims) &
-    !$acc present(tape_gpu,clmptr_ra,clmptr_rs)
+    !----------------------------------------------------------------------
+    !$acc serial  present(tape_gpu,clmptr_ra, clmptr_rs) 
+    !$acc loop independent private(t,f,hp, numdims,num2d)
     do t = 1,ntapes
        do f = 1,tape_gpu(t)%nflds
           numdims = tape_gpu(t)%hlist(f)%numdims
 
           if ( numdims == 1) then
-            
-             call hist_update_hbuf_field_1d_gpu(t, f, tape_gpu(t)%hlist(f)%hpindex,bounds)
+             hp = tape_gpu(t)%hlist(f)%hpindex            
+             call hist_update_hbuf_field_1d_gpu(t, f, hp ,bounds)
           else
+             hp = tape_gpu(t)%hlist(f)%hpindex
              num2d = tape_gpu(t)%hlist(f)%num2d
-             call hist_update_hbuf_field_2d_gpu (t, f,tape_gpu(t)%hlist(f)%hpindex, bounds, num2d)
+             call hist_update_hbuf_field_2d_gpu (t, f, hp , bounds, num2d)
           end if
        end do
     end do
-    
+
+    !$acc end serial
+     
     if(inc == 0) then
         call transfer_tape_to_cpu()
     endif
@@ -218,9 +221,9 @@ contains
     !use decompMod       , only : BOUNDS_LEVEL_PROCdd
 
     ! !ARGUMENTS:
-    integer, intent(in) :: t            ! tape index
-    integer, intent(in) :: f            ! field index
-    integer, intent(in) :: hpindex
+    integer,value, intent(in) :: t            ! tape index
+    integer,value, intent(in) :: f            ! field index
+    integer,value, intent(in) :: hpindex
     type(bounds_type), intent(in) :: bounds
     !
     ! !LOCAL VARIABLES:
@@ -260,27 +263,27 @@ contains
           ! threaded region! (See also bug 1786)
           call p2g(bounds, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg), &
                p2c_scale_type, c2l_scale_type, l2g_scale_type)
 
           map2gcell = .true.
        else if (type1d == namec) then
           call c2g(bounds, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg), &
                c2l_scale_type, l2g_scale_type)
           
           map2gcell = .true.
        else if (type1d == namel) then
           call l2g(bounds, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg), &
                l2g_scale_type)
           map2gcell = .true.
        else if (type1d == namet) then
           call t2g(bounds, &
                field, &
-               field_gcell)
+               field_gcell(bounds%begg:bounds%endg))
           map2gcell = .true.
        end if
     end if
@@ -450,9 +453,9 @@ end subroutine hist_update_hbuf_field_1d_gpu
     !use decompMod       , only : BOUNDS_LEVEL_PROC
     !
     ! !ARGUMENTS:
-    integer, intent(in) :: t            ! tape index
-    integer, intent(in) :: f            ! field index
-    integer, intent(in) :: hpindex
+    integer,value, intent(in) :: t            ! tape index
+    integer,value, intent(in) :: f            ! field index
+    integer,value, intent(in) :: hpindex
     type(bounds_type), intent(in) :: bounds
     integer, intent(in) :: num2d        ! size of second dimension
     !
@@ -519,25 +522,25 @@ end subroutine hist_update_hbuf_field_1d_gpu
           ! threaded region! (See also bug 1786)
           call p2g(bounds, num2d, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg, :), &
                p2c_scale_type, c2l_scale_type, l2g_scale_type)
           map2gcell = .true.
        else if (type1d == namec) then
           call c2g(bounds, num2d, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg, :), &
                c2l_scale_type, l2g_scale_type)
           map2gcell = .true.
        else if (type1d == namel) then
           call l2g(bounds, num2d, &
                field, &
-               field_gcell, &
+               field_gcell(bounds%begg:bounds%endg, :), &
                l2g_scale_type)
           map2gcell = .true.
        else if (type1d == namet) then
           call t2g(bounds, num2d, &
                field, &
-               field_gcell)
+               field_gcell(bounds%begg:bounds%endg, :))
           map2gcell = .true.
        end if
     end if

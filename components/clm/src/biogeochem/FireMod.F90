@@ -257,17 +257,16 @@ contains
 
       !pft to column average
       call p2c(bounds, num_soilc, filter_soilc, &
-           totvegc, &
-           totvegc_col)
+           totvegc(bounds%begp:bounds%endp), &
+           totvegc_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           leafc, &
-           leafc_col)
-
+           leafc(bounds%begp:bounds%endp), &
+           leafc_col(bounds%begc:bounds%endc))
+     
       call p2c(bounds, num_soilc, filter_soilc, &
-           deadstemc, &
-           deadstemc_col)
-
+           deadstemc(bounds%begp:bounds%endp), &
+           deadstemc_col(bounds%begc:bounds%endc))
      !
      ! On first time-step, just set area burned to zero and exit
      !

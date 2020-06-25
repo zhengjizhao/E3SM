@@ -316,7 +316,9 @@ contains
     type(glc2lnd_type) , intent(inout) :: glc2lnd_vars
     !
     ! !LOCAL VARIABLES:
-
+    associate(&
+                    icemask => glc2lnd_vars%icemask_grc &
+             )
     !-----------------------------------------------------------------------
 
     call update_landunit_weights(bounds_clump)
@@ -327,8 +329,8 @@ contains
     ! This call requires clump-level bounds, which is why we need to ensure that the
     ! argument to this routine is clump-level bounds
     call reweight_wrapup(bounds_clump, &
-            glc2lnd_vars%icemask_grc)
-
+            icemask(bounds_clump%begg:bounds_clump%endg) )
+    end associate
   end subroutine dynSubgrid_wrapup_weight_changes
 
 end module dynSubgridDriverMod

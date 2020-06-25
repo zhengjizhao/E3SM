@@ -276,10 +276,6 @@ contains
       beta(begl:endl) = 1._r8             ! Should be set to the same values as in Biogeophysics1Mod
       zii(begl:endl)  = 1000._r8          ! Should be set to the same values as in Biogeophysics1Mod
 
-      ! Get current date
-      !#py dtime = get_step_size()
-      !#py call get_curr_date (year, month, day, secs)
-
       ! Compute canyontop wind using Masson (2000)
 
       do fl = 1, num_urbanl
@@ -386,9 +382,9 @@ contains
          if (num_urbanl > 0) then
             call FrictionVelocity(begl, endl, &
                  num_urbanl, filter_urbanl, &
-                 z_d_town, z_0_town, z_0_town, z_0_town, &
-                 obu, iter+1, ur, um, ustar, &
-                 temp1, temp2, temp12m, temp22m, fm, &
+                 z_d_town(begl:endl), z_0_town(begl:endl), z_0_town(begl:endl), z_0_town(begl:endl), &
+                 obu(begl:endl), iter+1, ur(begl:endl), um(begl:endl), ustar(begl:endl), &
+                 temp1(begl:endl), temp2(begl:endl), temp12m(begl:endl), temp22m(begl:endl), fm(begl:endl), &
                  frictionvel_vars, landunit_index=.true.)
          end if
         

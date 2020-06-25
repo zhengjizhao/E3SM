@@ -13,6 +13,8 @@ module accumulGPUMod
   use VegetationType        , only : veg_pp
   use LandunitType      , only : lun_pp
   use GridcellType      , only : grc_pp
+  use clm_varpar        , only : crop_prog
+  use clm_varctl        , only : use_cn, use_fates
 
   type accum_field_gpu_type
      character(len=  8), pointer :: name    => null()  !field name
@@ -77,8 +79,9 @@ module accumulGPUMod
       !$acc enter data copyin(naccflds,accum_field_gpu)
 
     end subroutine init_accum_gpu
+
     !------------------------------------------------------------------------
-    subroutine update_accum_field_sl (nf, name, field, nstep)
+    subroutine update_accum_field_sl (nf, name, beg1d, end1d, field, nstep)
       !
       ! !DESCRIPTION:
       ! Accumulate single level field over specified time interval.
@@ -88,20 +91,19 @@ module accumulGPUMod
       implicit none
       integer, value,intent(in)  :: nf
       character(len=8), intent(in) :: name     !field name
-      real(r8),  dimension(:) :: field !field values for current time step
+      integer,value, intent(in) :: beg1d
+      integer,value, intent(in) :: end1d
+      real(r8), intent(inout) :: field(beg1d : ) !field values for current time step
       integer ,value, intent(in) :: nstep            !time step index
       !
       ! !LOCAL VARIABLES:
       integer :: i,k              !indices
       integer :: accper              !temporary accumulation period
-      integer :: beg1d,end1d             !subgrid beginning,ending indices
+      !integer :: beg1d,end1d             !subgrid beginning,ending indices
       !------------------------------------------------------------------------
-
-      ! find field index. return if "name" is not on list
       ! error check
-
-      beg1d = accum_field_gpu(nf)%beg1d
-      end1d = accum_field_gpu(nf)%end1d
+      ! beg1d = accum_field_gpu(nf)%beg1d
+      ! end1d = accum_field_gpu(nf)%end1d
 
       ! reset accumulated field value if necessary and  update
       ! accumulation field
@@ -130,7 +132,7 @@ module accumulGPUMod
 
          !running mean - reset accumulation period until greater than nstep
 
-         accper = min (nstep,accum_field_gpu(nf)%period)
+         accper = min(nstep,accum_field_gpu(nf)%period)
          do k = beg1d, end1d
            accum_field_gpu(nf)%val(k,1) = ((accper-1)*accum_field_gpu(nf)%val(k,1) + field(k)) / accper
          end do
@@ -151,7 +153,7 @@ module accumulGPUMod
     end subroutine update_accum_field_sl
 
     !------------------------------------------------------------------------
-    subroutine update_accum_field_ml (nf, name, field, nstep)
+    subroutine update_accum_field_ml (nf, name, beg, end,field, nstep)
       !
       ! !DESCRIPTION:
       ! Accumulate multi level field over specified time interval.
@@ -160,27 +162,20 @@ module accumulGPUMod
       implicit none
       integer, value, intent(in)   :: nf
       character(len=8), intent(in) :: name       !field name
-      real(r8),  dimension(:,:) :: field !field values for current time step
+      integer,value, intent(in) :: beg
+      integer,value, intent(in) :: end
+      real(r8),  intent(inout)  :: field(beg: ,:) !field values for current time step
       integer , value , intent(in) :: nstep              !time step index
       !
       ! !LOCAL VARIABLES:
-      integer :: i,j,k               !indices
+      integer :: i,j,k            !indices
       integer :: accper              !temporary accumulation period
-      integer :: beg,end             !subgrid beginning,ending indices
       integer :: numlev              !number of vertical levels
       !------------------------------------------------------------------------
 
-      ! find field index. return if "name" is not on list
-
-
-      ! error check
-
       numlev = accum_field_gpu(nf)%numlev
-      beg = accum_field_gpu(nf)%beg1d
-      end = accum_field_gpu(nf)%end1d
-
-      ! accumulate field
-      ! accumulate field
+      ! beg = accum_field_gpu(nf)%beg1d
+      ! end = accum_field_gpu(nf)%end1d
 
       ! reset accumulated field value if necessary and  update
       ! accumulation field
@@ -227,7 +222,7 @@ module accumulGPUMod
 
 
     !------------------------------------------------------------------------
-    subroutine extract_accum_field_sl (nf, name, field, nstep)
+    subroutine extract_accum_field_sl (nf, name,beg1d,end1d, field, nstep)
       !
       ! !DESCRIPTION:
       ! Extract single-level accumulated field.
@@ -243,29 +238,23 @@ module accumulGPUMod
       implicit none
       integer,value, intent(in)  :: nf
       character(len=8), intent(in) :: name     !field name
-      real(r8),  dimension(:) :: field !field values for current time step
+      integer,value, intent(in) :: beg1d
+      integer,value, intent(in) :: end1d
+      real(r8),  intent(inout)  :: field(beg1d : ) !field values for current time step
       integer ,value, intent(in) :: nstep            !timestep index
       !
       ! !LOCAL VARIABLES:
-      integer :: i,k             !indices
-      integer :: beg,end         !subgrid beginning,ending indices
+      integer :: i,k         !indices
       !------------------------------------------------------------------------
-
-
-      ! error check
-
-      beg = accum_field_gpu(nf)%beg1d
-      end = accum_field_gpu(nf)%end1d
-
       ! extract field
 
       if (accum_field_gpu(nf)%acctype == 'timeavg' .and. &
            mod(nstep,accum_field_gpu(nf)%period) /= 0) then
-         do k = beg,end
+         do k = beg1d,end1d
             field(k) = spval  !assign absurd value when avg not ready
          end do
       else
-         do k = beg,end
+         do k = beg1d,end1d
             field(k) = accum_field_gpu(nf)%val(k,1)
          end do
       end if
@@ -273,7 +262,7 @@ module accumulGPUMod
     end subroutine extract_accum_field_sl
 
     !------------------------------------------------------------------------
-    subroutine extract_accum_field_ml (nf, name, field, nstep)
+    subroutine extract_accum_field_ml (nf, name,beg,end, field, nstep)
       !
       ! !DESCRIPTION:
       ! Extract mutli-level accumulated field.
@@ -289,27 +278,19 @@ module accumulGPUMod
       implicit none
       integer, value,intent(in)    :: nf
       character(len=8), intent(in) :: name       !field name
-      real(r8), dimension(:,:) :: field !field values for current time step
+      integer,value, intent(in) :: beg
+      integer,value, intent(in) :: end
+      real(r8),  intent(inout)  :: field(beg :,: ) !field values for current time step
       integer,value, intent(in) :: nstep               !timestep index
       !
       ! !LOCAL VARIABLES:
       integer :: i,j,k           !indices
-      integer :: beg,end         !subgrid beginning,ending indices
       integer :: numlev          !number of vertical levels
       !------------------------------------------------------------------------
 
-      ! find field index. return if "name" is not on list
-
-      !nf = 0
-      !do i = 1, naccflds
-      !   if (name == accum_field_gpu(i)%name) nf = i
-      !end do
-
-      ! error check
-
       numlev = accum_field_gpu(nf)%numlev
-      beg = accum_field_gpu(nf)%beg1d
-      end = accum_field_gpu(nf)%end1d
+      ! beg = accum_field_gpu(nf)%beg1d
+      ! end = accum_field_gpu(nf)%end1d
 
       !extract field
 
@@ -333,14 +314,11 @@ module accumulGPUMod
      subroutine atm2lnd_UpdateAccVars (atm2lnd_vars, bounds, nstep)
        !
        ! USES
-       use clm_varctl      , only: use_cn, use_fates
-
        !$acc routine seq
        ! !ARGUMENTS:
        type(atm2lnd_type)  , intent(inout) :: atm2lnd_vars
        type(bounds_type)   , intent(in)    :: bounds
-       integer, intent(in) :: nstep          ! timestep number
-
+       integer         , value ,intent(in) :: nstep          ! timestep number
        !
        ! !LOCAL VARIABLES:
        integer :: g,c,p                     ! indices
@@ -348,6 +326,14 @@ module accumulGPUMod
        character(len=8) :: name
        real(r8) :: rbufslp(bounds%begp:bounds%endp)      ! temporary single level - pft level
        !---------------------------------------------------------------------
+       associate( &
+         fsd240_patch => atm2lnd_vars%fsd240_patch  , &
+         fsd24_patch  => atm2lnd_vars%fsd24_patch   , &
+         fsi24_patch  => atm2lnd_vars%fsi24_patch   , &
+         fsi240_patch => atm2lnd_vars%fsi240_patch  , &
+         prec60_patch => atm2lnd_vars%prec60_patch  , &
+         prec10_patch => atm2lnd_vars%prec10_patch   &
+         )
        begp = bounds%begp; endp = bounds%endp
 
        ! Allocate needed dynamic memory for single level pft field
@@ -357,22 +343,22 @@ module accumulGPUMod
           rbufslp(p) = atm2lnd_vars%forc_solad_grc(g,1)
        end do
        name = 'FSD240'
-       call update_accum_field_gpu  (2,name, rbufslp, nstep)
-       call extract_accum_field_gpu (2,name, atm2lnd_vars%fsd240_patch, nstep)
+       call update_accum_field_gpu  (2,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (2,name,begp,endp, fsd240_patch(begp:endp), nstep)
        name = 'FSD24'
-       call update_accum_field_gpu  (1, name , rbufslp, nstep)
-       call extract_accum_field_gpu (1, name , atm2lnd_vars%fsd24_patch, nstep)
+       call update_accum_field_gpu  (1, name ,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (1, name ,begp,endp, fsd24_patch(begp:endp), nstep)
            ! Accumulate and extract forc_solai24 & forc_solai240
        do p = begp,endp
           g = veg_pp%gridcell(p)
           rbufslp(p) = atm2lnd_vars%forc_solai_grc(g,1)
        end do
        name = 'FSI24'
-       call update_accum_field_gpu  (3, name, rbufslp , nstep)
-       call extract_accum_field_gpu (3, name , atm2lnd_vars%fsi24_patch      , nstep)
+       call update_accum_field_gpu  (3, name, begp,endp, rbufslp(begp:endp) , nstep)
+       call extract_accum_field_gpu (3, name, begp,endp, fsi24_patch(begp:endp) , nstep)
        name = 'FSI240'
-       call update_accum_field_gpu  (4, name, rbufslp , nstep)
-       call extract_accum_field_gpu (4, name, atm2lnd_vars%fsi240_patch     , nstep)
+       call update_accum_field_gpu  (4, name,begp,endp, rbufslp(begp:endp) , nstep)
+       call extract_accum_field_gpu (4, name,begp,endp, fsi240_patch(begp:endp), nstep)
        do p = begp,endp
           c = veg_pp%column(p)
           rbufslp(p) = atm2lnd_vars%forc_rain_downscaled_col(c) + atm2lnd_vars%forc_snow_downscaled_col(c)
@@ -381,13 +367,13 @@ module accumulGPUMod
        if (use_cn) then
           name = 'PREC60'
           ! Accumulate and extract PREC60 (accumulates total precipitation as 60-day running mean)
-          call update_accum_field_gpu  (6,name, rbufslp, nstep)
-          call extract_accum_field_gpu (6,name, atm2lnd_vars%prec60_patch, nstep)
+          call update_accum_field_gpu  (6,name,begp,endp, rbufslp(begp:endp), nstep)
+          call extract_accum_field_gpu (6,name,begp,endp, prec60_patch(begp:endp), nstep)
 
           ! Accumulate and extract PREC10 (accumulates total precipitation as 10-day running mean)
           name = 'PREC10'
-          call update_accum_field_gpu  (5, name, rbufslp, nstep)
-          call extract_accum_field_gpu (5, name, atm2lnd_vars%prec10_patch, nstep)
+          call update_accum_field_gpu  (5, name,begp,endp, rbufslp(begp:endp), nstep)
+          call extract_accum_field_gpu (5, name,begp,endp, prec10_patch(begp:endp), nstep)
        end if
        if (use_fates) then
          name = 'PREC24'
@@ -410,19 +396,18 @@ module accumulGPUMod
           !call update_accum_field_gpu  (name, rbufslp, nstep)
           !call extract_accum_field_gpu (name, atm2lnd_vars%rh24_patch, nstep)
        end if
+       end associate
      end subroutine atm2lnd_UpdateAccVars
 
      !-----------------------------------------------------------------------
      subroutine update_acc_vars_top_afGPU (top_af, bounds, nstep)
        !
        ! USES
-       use clm_varctl      , only: use_cn, use_fates
-
        !$acc routine seq
        ! !ARGUMENTS:
        type(topounit_atmospheric_flux)    :: top_af
        type(bounds_type) , intent(in) :: bounds
-       integer           , intent(in) :: nstep  !timestep number
+       integer,   value  , intent(in) :: nstep  !timestep number
        character(len=8) :: name
        !
        ! !LOCAL VARIABLES:
@@ -430,6 +415,10 @@ module accumulGPUMod
        integer :: begt, endt
        real(r8) :: rbufslt(bounds%begt:bounds%endt)       ! temporary single level - topounit level
        !---------------------------------------------------------------------
+       associate( &
+         prec10d  =>  top_af%prec10d , &
+         prec60d  =>  top_af%prec60d  &
+         )
        begt = bounds%begt; endt = bounds%endt
        ! Allocate needed dynamic memory for single level topounit field
 
@@ -440,18 +429,19 @@ module accumulGPUMod
        if (use_cn) then
           ! Accumulate and extract PREC60D (accumulates total precipitation as 60-day running mean)
           name = 'PREC60D'
-          call update_accum_field_gpu  (8,NAME, rbufslt, nstep)
-          call extract_accum_field_gpu (8,NAME, top_af%prec60d, nstep)
+          call update_accum_field_gpu  (8,NAME,begt,endt, rbufslt(begt:endt), nstep)
+          call extract_accum_field_gpu (8,NAME,begt,endt, prec60d(begt:endt), nstep)
           ! Accumulate and extract PREC10D (accumulates total precipitation as 10-day running mean)
           name = 'PREC10D'
-          call update_accum_field_gpu  (7,name, rbufslt, nstep)
-          call extract_accum_field_gpu (7,name, top_af%prec10d, nstep)
+          call update_accum_field_gpu  (7,name,begt,endt, rbufslt(begt:endt), nstep)
+          call extract_accum_field_gpu (7,name,begt,endt, prec10d(begt:endt), nstep)
        end if
        if (use_fates) then
          name = 'PREC24H'
           !call update_accum_field_gpu  (name, rbufslt, nstep)
           !call extract_accum_field_gpu (name, top_af%prec24h, nstep)
        end if
+       end associate
      end subroutine update_acc_vars_top_afGPU
 
      !----------------------  -------------------------------------------------
@@ -460,8 +450,7 @@ module accumulGPUMod
     !$acc routine seq
     ! USES
     use shr_const_mod    , only : SHR_CONST_CDAY, SHR_CONST_TKFRZ
-    use clm_varpar      , only: crop_prog
-
+    !
     ! !ARGUMENTS:
     type(vegetation_energy_state)    :: veg_es
     type(bounds_type)      , intent(in) :: bounds
@@ -479,6 +468,19 @@ module accumulGPUMod
     integer :: begp, endp
     real(r8) :: rbufslp(bounds%begp:bounds%endp)      ! temporary single level - pft level
     !---------------------------------------------------------------------
+    associate( &
+      t_ref2m  =>  veg_es%t_ref2m , &
+      t_a10    =>  veg_es%t_a10   , &
+      t_a10min =>  veg_es%t_a10min   , &
+      t_a5min  =>  veg_es%t_a5min   , &
+      t_veg24  =>  veg_es%t_veg24 , &
+      t_veg240 =>  veg_es%t_veg240 , &
+      t_ref2m_u => veg_es%t_ref2m_u , &
+      t_ref2m_r => veg_es%t_ref2m_r , &
+      gdd0      =>  veg_es%gdd0   , &
+      gdd8      =>  veg_es%gdd8   , &
+      gdd10     =>  veg_es%gdd10   &
+      )
     begp = bounds%begp; endp = bounds%endp
     ! Allocate needed dynamic memory for single level pft field
     ! fill the temporary variable
@@ -486,14 +488,14 @@ module accumulGPUMod
        rbufslp(p) = veg_es%t_veg(p)
     end do
     name = 'T10'
-    call update_accum_field_gpu  (9,name, veg_es%t_ref2m, nstep)
-    call extract_accum_field_gpu (9,name, veg_es%t_a10  , nstep)
+    call update_accum_field_gpu  (9,name,begp,endp, t_ref2m(begp:endp), nstep)
+    call extract_accum_field_gpu (9,name,begp,endp, t_a10(begp:endp)  , nstep)
     name = 'T_VEG24'
-    call update_accum_field_gpu  (13,NAME , rbufslp       , nstep)
-    call extract_accum_field_gpu (13,NAME , veg_es%t_veg24  , nstep)
+    call update_accum_field_gpu  (13,NAME,begp,endp, rbufslp(begp:endp)       , nstep)
+    call extract_accum_field_gpu (13,NAME,begp,endp, t_veg24(begp:endp)  , nstep)
     name = 'T_VEG240'
-    call update_accum_field_gpu  (14,name, rbufslp       , nstep)
-    call extract_accum_field_gpu (14,name, veg_es%t_veg240 , nstep)
+    call update_accum_field_gpu  (14,name,begp,endp, rbufslp       , nstep)
+    call extract_accum_field_gpu (14,name,begp,endp, t_veg240(begp:endp) , nstep)
     ! Accumulate and extract TREFAV - hourly average 2m air temperature
     ! Used to compute maximum and minimum of hourly averaged 2m reference
     ! temperature over a day. Note that "spval" is returned by the call to
@@ -501,8 +503,8 @@ module accumulGPUMod
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
     name = 'TREFAV'
-    call update_accum_field_gpu  (10,name , veg_es%t_ref2m, nstep)
-    call extract_accum_field_gpu (10,name , rbufslp, nstep)
+    call update_accum_field_gpu  (10,name,begp,endp, t_ref2m(begp:endp), nstep)
+    call extract_accum_field_gpu (10,name,begp,endp, rbufslp(begp:endp), nstep)
     do p = begp,endp
        if (rbufslp(p) /= spval) then
           veg_es%t_ref2m_max_inst(p) = max(rbufslp(p), veg_es%t_ref2m_max_inst(p))
@@ -525,8 +527,8 @@ module accumulGPUMod
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
     name = 'TREFAV_U'
-    call update_accum_field_gpu  (11,NAME , veg_es%t_ref2m_u, nstep)
-    call extract_accum_field_gpu (11,NAME , rbufslp, nstep)
+    call update_accum_field_gpu  (11,NAME,begp,endp, t_ref2m_u(begp:endp), nstep)
+    call extract_accum_field_gpu (11,NAME,begp,endp, rbufslp(begp:endp), nstep)
     do p = begp,endp
        l = veg_pp%landunit(p)
        if (rbufslp(p) /= spval) then
@@ -552,8 +554,8 @@ module accumulGPUMod
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
     NAME = 'TREFAV_R'
-    call update_accum_field_gpu  (12,name, veg_es%t_ref2m_r, nstep)
-    call extract_accum_field_gpu (12,name, rbufslp, nstep)
+    call update_accum_field_gpu  (12,name,begp,endp, t_ref2m_r(begp:endp), nstep)
+    call extract_accum_field_gpu (12,name,begp,endp, rbufslp(begp:endp), nstep)
     do p = begp,endp
        l = veg_pp%landunit(p)
        if (rbufslp(p) /= spval) then
@@ -579,16 +581,16 @@ module accumulGPUMod
           if (rbufslp(p) > 1.e30_r8) rbufslp(p) = SHR_CONST_TKFRZ !and were 'min'&
        end do                                                     !'min_inst' not initialized?
        name = 'TDM10'
-       call update_accum_field_gpu  (5222,name, rbufslp, nstep)
-       call extract_accum_field_gpu (5222,name, veg_es%t_a10min, nstep)
+       call update_accum_field_gpu  (5222,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (5222,name,begp,endp, t_a10min(begp:endp), nstep)
        ! Accumulate and extract TDM5
        do p = begp,endp
           rbufslp(p) = min(veg_es%t_ref2m_min(p),veg_es%t_ref2m_min_inst(p))
           if (rbufslp(p) > 1.e30_r8) rbufslp(p) = SHR_CONST_TKFRZ !and were 'min'&
        end do                                         !'min_inst' not initialized?
        name = 'TDM5'
-       call update_accum_field_gpu  (54554,name, rbufslp, nstep)
-       call extract_accum_field_gpu (54554,name, veg_es%t_a5min, nstep)
+       call update_accum_field_gpu  (54554,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (54554,name,begp,endp, t_a5min(begp:endp), nstep)
 
        ! Accumulate and extract GDD0
        do p = begp,endp
@@ -603,8 +605,8 @@ module accumulGPUMod
           end if
        end do
        name = 'GDD0'
-       call update_accum_field_gpu  (454,name, rbufslp, nstep)
-       call extract_accum_field_gpu (454,name, veg_es%gdd0, nstep)
+       call update_accum_field_gpu  (454,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (454,name,begp,endp, gdd0(begp:endp), nstep)
        ! Accumulate and extract GDD8
        do p = begp,endp
           g = veg_pp%gridcell(p)
@@ -619,8 +621,8 @@ module accumulGPUMod
           end if
        end do
        name = 'GDD8'
-       call update_accum_field_gpu  (44,name, rbufslp, nstep)
-       call extract_accum_field_gpu (44,name, veg_es%gdd8, nstep)
+       call update_accum_field_gpu  (44,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (44,name,begp,endp, gdd8(begp:endp), nstep)
        ! Accumulate and extract GDD10
        do p = begp,endp
           g = veg_pp%gridcell(p)
@@ -635,9 +637,11 @@ module accumulGPUMod
           end if
        end do
        name = 'GDD10'
-       call update_accum_field_gpu  (42,name , rbufslp, nstep)
-       call extract_accum_field_gpu (42,name , veg_es%gdd10, nstep)
+       call update_accum_field_gpu  (42,name,begp,endp, rbufslp(begp:endp), nstep)
+       call extract_accum_field_gpu (42,name,begp,endp, gdd10(begp:endp), nstep)
     end if
+
+    end associate
   end subroutine update_acc_vars_veg_es_GPU
 
   !-----------------------------------------------------------------------
@@ -648,9 +652,8 @@ module accumulGPUMod
       ! !ARGUMENTS:
       type(canopystate_type)             :: canopystate_vars
       type(bounds_type)      , intent(in) :: bounds
-      integer, intent(in) :: dtime                     ! timestep size [seconds]
-      integer, intent(in) :: nstep                     ! timestep number
-
+      integer,value, intent(in) :: dtime                     ! timestep size [seconds]
+      integer,value, intent(in) :: nstep                     ! timestep number
       !
       ! !LOCAL VARIABLES:
       integer :: g,p                       ! indices
@@ -659,30 +662,32 @@ module accumulGPUMod
       character(len=8) :: name
       real(r8) :: rbufslp(bounds%begp:bounds%endp)      ! temporary single level - pft level
       !---------------------------------------------------------------------
-
+      associate( &
+        fsun24_patch  => canopystate_vars%fsun24_patch ,&
+        fsun240_patch => canopystate_vars%fsun240_patch  ,&
+        elai_p_patch  => canopystate_vars%elai_p_patch  &
+        )
       begp = bounds%begp; endp = bounds%endp
-
-      ! Allocate needed dynamic memory for single level pft field
 
       ! Accumulate and extract fsun24 & fsun240
       do p = begp,endp
          rbufslp(p) = canopystate_vars%fsun_patch(p)
       end do
       name = 'FSUN24'
-      call update_accum_field_gpu  (15,NAME , rbufslp              , nstep)
-      call extract_accum_field_gpu (15,NAME , canopystate_vars%fsun24_patch    , nstep)
+      call update_accum_field_gpu  (15,NAME,begp,endp, rbufslp(begp:endp) , nstep)
+      call extract_accum_field_gpu (15,NAME,begp,endp, fsun24_patch(begp:endp), nstep)
       name = 'FSUN240'
-      call update_accum_field_gpu  (16,name, rbufslp              , nstep)
-      call extract_accum_field_gpu (16,name, canopystate_vars%fsun240_patch   , nstep)
+      call update_accum_field_gpu  (16,name,begp,endp, rbufslp(begp:endp)         , nstep)
+      call extract_accum_field_gpu (16,name,begp,endp, fsun240_patch(begp:endp)   , nstep)
 
       ! Accumulate and extract elai_patch
       do p = begp,endp
          rbufslp(p) = canopystate_vars%elai_patch(p)
       end do
       name = 'LAIP'
-      call update_accum_field_gpu  (17,name, rbufslp                 , nstep)
-      call extract_accum_field_gpu (17,name, canopystate_vars%elai_p_patch       , nstep)
-
+      call update_accum_field_gpu  (17,name,begp,endp, rbufslp (begp:endp)  , nstep)
+      call extract_accum_field_gpu (17,name,begp,endp, elai_p_patch(begp:endp)  , nstep)
+      end associate
     end subroutine CanopyState_UpdateAccVars
 
     !-----------------------------------------------------------------------
@@ -704,10 +709,8 @@ module accumulGPUMod
       ! !ARGUMENTS:
       type(crop_type)       , intent(inout) :: crop_vars
       type(bounds_type)      , intent(in)    :: bounds
-      integer, intent(in) :: dtime ! timestep size [seconds]
-      integer, intent(in) :: nstep ! timestep number
-
-
+      integer,value, intent(in) :: dtime ! timestep size [seconds]
+      integer,value, intent(in) :: nstep ! timestep number
       !
       ! !LOCAL VARIABLES:
       integer :: p,c   ! indices
@@ -717,11 +720,11 @@ module accumulGPUMod
       real(r8) :: rbufslp(bounds%begp:bounds%endp)      ! temporary single level - pft level
 
       !-----------------------------------------------------------------------
-
+      associate( &
+        gddplant_patch  =>  crop_vars%gddplant_patch  , &
+        gddtsoi_patch   =>  crop_vars%gddtsoi_patch   &
+        )
       begp = bounds%begp; endp = bounds%endp
-      ! Allocate needed dynamic memory for single level pft field
-
-
       ! Accumulate and extract GDDPLANT
 
       do p = begp,endp
@@ -738,13 +741,12 @@ module accumulGPUMod
          end if
       end do
       name = 'GDDPLANT'
-      call update_accum_field_gpu  (0,name, rbufslp, nstep)
-      call extract_accum_field_gpu (0,name, crop_vars%gddplant_patch, nstep)
+      call update_accum_field_gpu  (0,name,begp,endp, rbufslp(begp:endp), nstep)
+      call extract_accum_field_gpu (0,name,begp,endp, gddplant_patch(begp:endp), nstep)
 
       ! Accumulate and extract GDDTSOI
       ! In agroibis crop_vars variable is calculated
       ! to 0.05 m, so here we use the top two soil layers
-
       do p = begp,endp
          if (crop_vars%croplive_patch(p)) then ! relative to planting date
             ivt = veg_pp%itype(p)
@@ -761,10 +763,10 @@ module accumulGPUMod
          end if
       end do
       name = 'GDDTSOI'
-      call update_accum_field_gpu  (0,name, rbufslp, nstep)
-      call extract_accum_field_gpu (0,name, crop_vars%gddtsoi_patch, nstep)
+      call update_accum_field_gpu  (0,name,begp,endp, rbufslp(begp:endp), nstep)
+      call extract_accum_field_gpu (0,name,begp,endp, gddtsoi_patch(begp:endp), nstep)
 
-
+      end associate
     end subroutine crop_vars_UpdateAccVars
 
     !-----------------------------------------------------------------------
@@ -784,27 +786,27 @@ module accumulGPUMod
         character(len=8) :: name
         real(r8) :: rbufslp(bounds%begp:bounds%endp)      ! temporary single level - pft level
         !---------------------------------------------------------------------
-
+        associate(  &
+          cn_scalar_runmean => cnstate_vars%cn_scalar_runmean , &
+          cp_scalar_runmean => cnstate_vars%cp_scalar_runmean &
+          )
         begp = bounds%begp; endp = bounds%endp
-
-        ! Allocate needed dynamic memory for single level pft field
 
         ! Accumulate and extract
         do p = begp,endp
            rbufslp(p) = cnstate_vars%cn_scalar(p)
         end do
         name = 'nlim_m'
-        call update_accum_field_gpu  (18,name , rbufslp             , nstep)
-        call extract_accum_field_gpu (18,name , cnstate_vars%cn_scalar_runmean  , nstep)
+        call update_accum_field_gpu  (18,name,begp,endp, rbufslp(begp:endp) , nstep)
+        call extract_accum_field_gpu (18,name,begp,endp, cn_scalar_runmean(begp:endp), nstep)
         do p = begp,endp
            rbufslp(p) = cnstate_vars%cp_scalar(p)
         end do
         name = 'plim_m'
-        call update_accum_field_gpu  (19,name , rbufslp             , nstep)
-        call extract_accum_field_gpu (19,name , cnstate_vars%cp_scalar_runmean  , nstep)
+        call update_accum_field_gpu  (19,name,begp,endp, rbufslp(begp:endp)   , nstep)
+        call extract_accum_field_gpu (19,name,begp,endp, cp_scalar_runmean(begp:endp)  , nstep)
 
+        end associate
       end subroutine CNState_UpdateAccVars
-
-
 
 end module accumulGPUMod

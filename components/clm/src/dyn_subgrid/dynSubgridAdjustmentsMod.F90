@@ -108,10 +108,37 @@ contains
 
     real(r8)                    :: wood_product_cflux(bounds%begp:bounds%endp)
     real(r8)                    :: deadstemc_patch_temp(bounds%begp:bounds%endp)
-
-    character(len=*), parameter :: subname = 'CStateDynamicPatchAdjustments'
     !-----------------------------------------------------------------------
-
+    associate(&
+      leafc         => veg_cs%leafc         , &
+      leafc_storage => veg_cs%leafc_storage , &
+      leafc_xfer    => veg_cs%leafc_xfer    , &
+      frootc        => veg_cs%frootc                ,&
+      frootc_storage => veg_cs%frootc_storage  ,&
+      frootc_xfer    => veg_cs%frootc_xfer    , &
+      livestemc      => veg_cs%livestemc                ,&
+      livestemc_storage => veg_cs%livestemc_storage  ,&
+      livestemc_xfer    => veg_cs%livestemc_xfer    , &
+      deadstemc         => veg_cs%deadstemc                ,&
+      deadstemc_storage => veg_cs%deadstemc_storage  ,&
+      deadstemc_xfer    => veg_cs%deadstemc_xfer    , &
+      livecrootc         => veg_cs%livecrootc          ,&
+      livecrootc_storage => veg_cs%livecrootc_storage  ,&
+      livecrootc_xfer    => veg_cs%livecrootc_xfer    , &
+      deadcrootc         => veg_cs%deadcrootc                ,&
+      deadcrootc_storage => veg_cs%deadcrootc_storage  ,&
+      deadcrootc_xfer    => veg_cs%deadcrootc_xfer    , &
+      gresp_storage      => veg_cs%gresp_storage  ,&
+      gresp_xfer         => veg_cs%gresp_xfer    , &
+      cpool              => veg_cs%cpool    , &
+      xsmrpool           => veg_cs%xsmrpool    , &
+      ctrunc             => veg_cs%ctrunc      , &
+      dispvegc           => veg_cs%dispvegc  , &
+      storvegc           => veg_cs%storvegc  , &
+      totvegc            => veg_cs%totvegc   , &
+      totpftc            => veg_cs%totpftc   , &
+      cropseedc_deficit  => veg_cs%cropseedc_deficit &
+      )
     begp = bounds%begp
     endp = bounds%endp
 
@@ -119,30 +146,30 @@ contains
     old_weight_was_zero = old_weight_was_zeroAcc(patch_state_updater, bounds)
     patch_grew          = patch_grewAcc(patch_state_updater,bounds)
 
-    call ComputeSeedAmounts(bounds                                        , &
-         species                    = veg_cs%species                          , &
-         leaf_patch                 = veg_cs%leafc           , &
-         leaf_storage_patch         = veg_cs%leafc_storage   , &
-         leaf_xfer_patch            = veg_cs%leafc_xfer      , &
+    call ComputeSeedAmounts(bounds                               , &
+         species                    = veg_cs%species             , &
+         leaf_patch                 = leafc        (begp:endp)   , &
+         leaf_storage_patch         = leafc_storage(begp:endp)   , &
+         leaf_xfer_patch            = leafc_xfer   (begp:endp)   , &
          ! Calculations only needed for patches that grew:
-         compute_here_patch         = patch_grew               , &
+         compute_here_patch         = patch_grew(begp:endp)               , &
          ! For patches that previously had zero area, ignore the current state for the
          ! sake of computing leaf proportions:
-         ignore_current_state_patch = old_weight_was_zero      , &
-         seed_leaf_patch            = seed_leafc_patch         , &
-         seed_leaf_storage_patch    = seed_leafc_storage_patch , &
-         seed_leaf_xfer_patch       = seed_leafc_xfer_patch    , &
-         seed_deadstem_patch        = seed_deadstemc_patch   )
+         ignore_current_state_patch = old_weight_was_zero(begp:endp)      , &
+         seed_leaf_patch            = seed_leafc_patch(begp:endp)         , &
+         seed_leaf_storage_patch    = seed_leafc_storage_patch(begp:endp) , &
+         seed_leaf_xfer_patch       = seed_leafc_xfer_patch(begp:endp)    , &
+         seed_deadstem_patch        = seed_deadstemc_patch(begp:endp))
 
     ! 1) LEAFC_PATCH
-    call update_patch_stateAcc(patch_state_updater,                 &
-         bounds                                                     , &
-         num_filterp_with_inactive                                  , &
-         filterp_with_inactive                                      , &
-         var               = veg_cs%leafc              , &
-         flux_out_grc_area = conv_cflux                  , &
-         seed              = seed_leafc_patch            , &
-         seed_addition     = dwt_leafc_seed   )
+    call update_patch_stateAcc(patch_state_updater,          &
+         bounds                                              , &
+         num_filterp_with_inactive                           , &
+         filterp_with_inactive                               , &
+         var               = leafc(begp:endp)       , &
+         flux_out_grc_area = conv_cflux(begp:endp)           , &
+         seed              = seed_leafc_patch(begp:endp)     , &
+         seed_addition     = dwt_leafc_seed(begp:endp)   )
 
 
     ! 2) LEAFC_STORAGE_PATCH
@@ -150,96 +177,96 @@ contains
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%leafc_storage      , &
-         flux_out_grc_area = conv_cflux                  , &
-         seed              = seed_leafc_storage_patch    , &
-         seed_addition     = dwt_leafc_seed           )
+         var               = leafc_storage(begp:endp)      , &
+         flux_out_grc_area = conv_cflux(begp:endp)                  , &
+         seed              = seed_leafc_storage_patch(begp:endp)    , &
+         seed_addition     = dwt_leafc_seed(begp:endp)           )
 
     ! 3) LEAF_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%leafc_xfer         , &
-         flux_out_grc_area = conv_cflux                  , &
-         seed              = seed_leafc_xfer_patch       , &
-         seed_addition     = dwt_leafc_seed        )
+         var               = leafc_xfer(begp:endp)         , &
+         flux_out_grc_area = conv_cflux(begp:endp)                  , &
+         seed              = seed_leafc_xfer_patch(begp:endp)       , &
+         seed_addition     = dwt_leafc_seed(begp:endp)        )
 
     ! 4) FROOTC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%frootc             , &
-         flux_out_col_area = dwt_frootc_to_litter)
+         var               = frootc(begp:endp)             , &
+         flux_out_col_area = dwt_frootc_to_litter(begp:endp))
 
     ! 5) FROOTC_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%frootc_storage     , &
-         flux_out_grc_area = conv_cflux)
+         var               = frootc_storage(begp:endp)     , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 6) FROOTC_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%frootc_xfer        , &
-         flux_out_grc_area = conv_cflux)
+         var               = frootc_xfer(begp:endp)        , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 7) LIVESTEMC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livestemc          , &
-         flux_out_grc_area = conv_cflux)
+         var               = livestemc(begp:endp)          , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 8) LIVESTEMC_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livestemc_storage  , &
-         flux_out_grc_area = conv_cflux)
+         var               = livestemc_storage(begp:endp)  , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 9) LIVESTEMC_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livestemc_xfer     , &
-         flux_out_grc_area = conv_cflux)
+         var               = livestemc_xfer(begp:endp)     , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 10) PROD10_CFLUX
     wood_product_cflux(begp:endp)      = 0._r8
-    deadstemc_patch_temp(begp:endp)    = veg_cs%deadstemc(begp:endp)
+    deadstemc_patch_temp(begp:endp)    = deadstemc(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(&
          patch_state_updater    ,&
          bounds                                                        , &
          num_filterp_with_inactive                                     , &
          filterp_with_inactive                                         , &
-         flux1_fraction_by_pft_type = pprod10                          , &
-         var                        = deadstemc_patch_temp     , &
-         flux1_out                  = prod10_cflux             , &
-         flux2_out                  = wood_product_cflux       , &
-         seed                       = seed_deadstemc_patch     )
+         flux1_fraction_by_pft_type = pprod10                           , &
+         var                        = deadstemc_patch_temp(begp:endp)     , &
+         flux1_out                  = prod10_cflux(begp:endp)             , &
+         flux2_out                  = wood_product_cflux(begp:endp)       , &
+         seed                       = seed_deadstemc_patch(begp:endp)     )
 
     ! 11) PROD100_CFLUX
     wood_product_cflux(begp:endp)      = 0._r8
-    deadstemc_patch_temp(begp:endp)    = veg_cs%deadstemc(begp:endp)
+    deadstemc_patch_temp(begp:endp)    = deadstemc(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(&
          patch_state_updater    ,&
          bounds                                                        , &
          num_filterp_with_inactive                                     , &
          filterp_with_inactive                                         , &
-         flux1_fraction_by_pft_type = pprod100                         , &
-         var                        = deadstemc_patch_temp     , &
-         flux1_out                  = prod100_cflux             , &
-         flux2_out                  = wood_product_cflux       , &
-         seed                       = seed_deadstemc_patch    )
+         flux1_fraction_by_pft_type = pprod100                            , &
+         var                        = deadstemc_patch_temp (begp:endp)      , &
+         flux1_out                  = prod100_cflux        (begp:endp)       , &
+         flux2_out                  = wood_product_cflux   (begp:endp)      , &
+         seed                       = seed_deadstemc_patch (begp:endp)     )
 
     ! 12) DEADSTEMC_PATCH
     wood_product_cflux(begp:endp)      = 0._r8
@@ -249,143 +276,143 @@ contains
          num_filterp_with_inactive                                     , &
          filterp_with_inactive                                         , &
          flux1_fraction_by_pft_type = pconv                          , &
-         var                        = veg_cs%deadstemc , &
-         flux1_out                  = conv_cflux               , &
-         flux2_out                  = wood_product_cflux        , &
-         seed                       = seed_deadstemc_patch     , &
-         seed_addition              = dwt_deadstemc_seed     )
+         var                        = deadstemc(begp:endp) , &
+         flux1_out                  = conv_cflux(begp:endp)               , &
+         flux2_out                  = wood_product_cflux(begp:endp)        , &
+         seed                       = seed_deadstemc_patch(begp:endp)     , &
+         seed_addition              = dwt_deadstemc_seed(begp:endp)     )
 
     ! 13) DEADSTEMC_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%deadstemc_storage  , &
-         flux_out_grc_area = conv_cflux)
+         var               = deadstemc_storage(begp:endp)  , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 14) DEADSTEMC_XFER_PATCH
      call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%deadstemc_xfer     , &
-         flux_out_grc_area = conv_cflux)
+         var               = deadstemc_xfer(begp:endp)     , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 15) LIVECROOTC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livecrootc         , &
-         flux_out_col_area = dwt_livecrootc_to_litter)
+         var               = livecrootc(begp:endp)         , &
+         flux_out_col_area = dwt_livecrootc_to_litter(begp:endp))
 
     ! 16) LIVECROOTC_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livecrootc_storage , &
-         flux_out_grc_area = conv_cflux)
+         var               = livecrootc_storage(begp:endp) , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 17) LIVECROOTC_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%livecrootc_xfer    , &
-         flux_out_grc_area = conv_cflux)
+         var               = livecrootc_xfer(begp:endp)    , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 18) DEADCROOTC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%deadcrootc         , &
-         flux_out_col_area = dwt_deadcrootc_to_litter)
+         var               = deadcrootc (begp:endp)        , &
+         flux_out_col_area = dwt_deadcrootc_to_litter(begp:endp))
 
     ! 19) DEADCROOTC_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%deadcrootc_storage , &
-         flux_out_grc_area = conv_cflux)
+         var               = deadcrootc_storage(begp:endp) , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 20) DEADCROOT_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%deadcrootc_xfer    , &
-         flux_out_grc_area = conv_cflux)
+         var               = deadcrootc_xfer(begp:endp)    , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 21) GRESP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%gresp_storage      , &
-         flux_out_grc_area = conv_cflux)
+         var               = gresp_storage(begp:endp)      , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 22) GRESP_XFER_STORAGE
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%gresp_xfer         , &
-         flux_out_grc_area = conv_cflux)
+         var               = gresp_xfer(begp:endp)         , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 23) CPOOL_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%cpool              , &
-         flux_out_grc_area = conv_cflux)
+         var               = cpool(begp:endp)              , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 24) XSMRPOOL_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%xsmrpool           , &
-         flux_out_grc_area = conv_cflux)
+         var               = xsmrpool(begp:endp)           , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 25) CTRUNC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%ctrunc             , &
-         flux_out_grc_area = conv_cflux)
+         var               = ctrunc(begp:endp)             , &
+         flux_out_grc_area = conv_cflux(begp:endp))
 
     ! 26) DISPVEGC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%dispvegc)
+         var               = dispvegc(begp:endp))
 
     ! 27) STORVEGC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%storvegc)
+         var               = storvegc(begp:endp))
 
     ! 28) TOTVEGC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%totvegc)
+         var               = totvegc(begp:endp))
 
     ! 29) TOTPFTC_PATCH
     call update_patch_stateAcc(patch_state_updater,                 &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_cs%totpftc)
+         var               = totpftc(begp:endp))
 
     if (use_crop) then
        ! This is a negative pool. So any deficit that we haven't repaid gets sucked out
@@ -394,8 +421,8 @@ contains
             bounds                                        , &
             num_filterp_with_inactive                     , &
             filterp_with_inactive                         , &
-            var = veg_cs%cropseedc_deficit , &
-            flux_out_grc_area = conv_cflux)
+            var = cropseedc_deficit(begp:endp) , &
+            flux_out_grc_area = conv_cflux(begp:endp))
     end if
 
     ! These fluxes are computed as negative quantities, but are expected to be positive,
@@ -405,7 +432,7 @@ contains
        dwt_livecrootc_to_litter(p) = -1._r8 * dwt_livecrootc_to_litter(p)
        dwt_deadcrootc_to_litter(p) = -1._r8 * dwt_deadcrootc_to_litter(p)
     end do
-
+   end associate
   end subroutine dyn_veg_cs_Adjustments
 
   !-----------------------------------------------------------------------
@@ -428,10 +455,11 @@ contains
     integer                     :: l, j
     integer                     :: begc, endc
     real(r8)                    :: adjustment_one_level(bounds%begc:bounds%endc)
-    real(r8)     ::   col_slice(bounds%begc:bounds%endc)
-    !character(len=*), parameter :: subname = 'CStateDynamicColumnAdjustments'
     !-----------------------------------------------------------------------
-
+    associate(&
+      decomp_cpools_vr    => col_cs%decomp_cpools_vr , &
+      ctrunc_vr           => col_cs%ctrunc_vr       &
+      )
     begc = bounds%begc
     endc = bounds%endc
 
@@ -439,36 +467,32 @@ contains
 
     do l = 1, ndecomp_pools
        do j = 1, nlevdecomp
-         col_slice = col_cs%decomp_cpools_vr(begc:endc, j, l)
           call update_column_state_no_special_handling_acc( column_state_updater , &
                bounds      = bounds,                                         &
                clump_index = clump_index,                                    &
-               var         = col_slice,     &
-               adjustment  = adjustment_one_level)
+               var         = decomp_cpools_vr(begc:endc, j, l),     &
+               adjustment  = adjustment_one_level(begc:endc))
 
           col_cs%dyn_cbal_adjustments(begc:endc) = &
                col_cs%dyn_cbal_adjustments(begc:endc) + &
                adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-          col_cs%decomp_cpools_vr(begc:endc, j, l) = col_slice
        end do
     end do
 
     do j = 1, nlevdecomp
-      col_slice = col_cs%ctrunc_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater , &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,     &
-            adjustment  = adjustment_one_level)
+            var         = ctrunc_vr(begc:endc,j),     &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_cs%dyn_cbal_adjustments(begc:endc) = &
             col_cs%dyn_cbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-        col_cs%ctrunc_vr(begc:endc,j) = col_slice
     end do
-
+    end associate
   end subroutine dyn_col_cs_Adjustments
 
   !-----------------------------------------------------------------------
@@ -538,7 +562,34 @@ contains
 
     !character(len=*), parameter :: subname = 'NStateDynamicPatchAdjustments'
     !-----------------------------------------------------------------------
-
+    associate(&
+      leafn          => veg_ns%leafn         , &
+      leafn_storage  => veg_ns%leafn_storage , &
+      leafn_xfer     => veg_ns%leafn_xfer    , &
+      frootn         => veg_ns%frootn                ,&
+      frootn_storage => veg_ns%frootn_storage  ,&
+      frootn_xfer    => veg_ns%frootn_xfer    , &
+      livestemn         => veg_ns%livestemn                ,&
+      livestemn_storage => veg_ns%livestemn_storage  ,&
+      livestemn_xfer    => veg_ns%livestemn_xfer    , &
+      deadstemn         => veg_ns%deadstemn                ,&
+      deadstemn_storage => veg_ns%deadstemn_storage  ,&
+      deadstemn_xfer    => veg_ns%deadstemn_xfer    , &
+      livecrootn         => veg_ns%livecrootn          ,&
+      livecrootn_storage => veg_ns%livecrootn_storage  ,&
+      livecrootn_xfer    => veg_ns%livecrootn_xfer    , &
+      deadcrootn         => veg_ns%deadcrootn                ,&
+      deadcrootn_storage => veg_ns%deadcrootn_storage  ,&
+      deadcrootn_xfer    => veg_ns%deadcrootn_xfer    , &
+      retransn           => veg_ns%retransn  ,&
+      npool              => veg_ns%npool    , &
+      ntrunc             => veg_ns%ntrunc      , &
+      dispvegn           => veg_ns%dispvegn  , &
+      storvegn           => veg_ns%storvegn  , &
+      totvegn            => veg_ns%totvegn   , &
+      totpftn            => veg_ns%totpftn   , &
+      cropseedn_deficit  => veg_ns%cropseedn_deficit &
+      )
     begp = bounds%begp
     endp = bounds%endp
 
@@ -548,9 +599,9 @@ contains
 
     call ComputeSeedAmounts(bounds                                        , &
          species                    = CN_SPECIES_N                        , &
-         leaf_patch                 = veg_ns%leafn           , &
-         leaf_storage_patch         = veg_ns%leafn_storage   , &
-         leaf_xfer_patch            = veg_ns%leafn_xfer      , &
+         leaf_patch                 = leafn         (begp:endp)  , &
+         leaf_storage_patch         = leafn_storage (begp:endp)  , &
+         leaf_xfer_patch            = leafn_xfer    (begp:endp)  , &
 
          ! Calculations only needed for patches that grew:
          compute_here_patch         = patch_grew(begp:endp)               , &
@@ -571,104 +622,104 @@ contains
          bounds                                           , &
          num_filterp_with_inactive                        , &
          filterp_with_inactive                            , &
-         var               = veg_ns%leafn    , &
-         flux_out_grc_area = conv_nflux        , &
-         seed              = seed_leafn_patch  , &
-         seed_addition     = dwt_leafn_seed   )
+         var               = leafn            (begp:endp)   , &
+         flux_out_grc_area = conv_nflux       (begp:endp) , &
+         seed              = seed_leafn_patch (begp:endp) , &
+         seed_addition     = dwt_leafn_seed   (begp:endp))
 
     ! 2) LEAFN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                   , &
          num_filterp_with_inactive                                , &
          filterp_with_inactive                                    , &
-         var               = veg_ns%leafn_storage    , &
-         flux_out_grc_area = conv_nflux                , &
-         seed              = seed_leafn_storage_patch  , &
-         seed_addition     = dwt_leafn_seed           )
+         var               = leafn_storage(begp:endp)    , &
+         flux_out_grc_area = conv_nflux(begp:endp)                , &
+         seed              = seed_leafn_storage_patch(begp:endp)  , &
+         seed_addition     = dwt_leafn_seed(begp:endp)           )
 
     ! 3) LEAFN_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                        , &
          num_filterp_with_inactive                                     , &
          filterp_with_inactive                                         , &
-         var               = veg_ns%leafn_xfer   , &
-         flux_out_grc_area = conv_nflux            , &
-         seed              = seed_leafn_xfer_patch , &
-         seed_addition     = dwt_leafn_seed        )
+         var               = leafn_xfer(begp:endp)   , &
+         flux_out_grc_area = conv_nflux(begp:endp)            , &
+         seed              = seed_leafn_xfer_patch(begp:endp) , &
+         seed_addition     = dwt_leafn_seed(begp:endp)        )
 
     ! 4) FROOTN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%frootn             , &
-         flux_out_col_area = dwt_frootn_to_litter)
+         var               = frootn(begp:endp)             , &
+         flux_out_col_area = dwt_frootn_to_litter(begp:endp))
 
     ! 5) FROOTN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%frootn_storage     , &
-         flux_out_grc_area = conv_nflux)
+         var               = frootn_storage(begp:endp)     , &
+         flux_out_grc_area = conv_nflux(begp:endp)  )
 
     ! 6) FROOTN_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
-         bounds                                                     , &
-         num_filterp_with_inactive                                  , &
-         filterp_with_inactive                                      , &
-         var               = veg_ns%frootn_xfer        , &
-         flux_out_grc_area = conv_nflux)
+         bounds                                       , &
+         num_filterp_with_inactive                    , &
+         filterp_with_inactive                        , &
+         var               = frootn_xfer(begp:endp)        , &
+         flux_out_grc_area = conv_nflux (begp:endp)   )
 
     ! 7) LIVESTEMN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livestemn          , &
-         flux_out_grc_area = conv_nflux)
+         var               = livestemn(begp:endp)          , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 8) LIVESTEMN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livestemn_storage  , &
-         flux_out_grc_area = conv_nflux)
+         var               = livestemn_storage(begp:endp)  , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 9) LIVESTEMN_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livestemn_xfer     , &
-         flux_out_grc_area = conv_nflux)
+         var               = livestemn_xfer(begp:endp)     , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 10) PROD10_NFLUX
     wood_product_nflux(begp:endp)      = 0._r8
-    deadstemn_patch_temp(begp:endp)    = veg_ns%deadstemn(begp:endp)
+    deadstemn_patch_temp(begp:endp)    = deadstemn(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(patch_state_updater , &
          bounds                                                           , &
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
-         flux1_fraction_by_pft_type = pprod10                             , &
-         var                        = deadstemn_patch_temp     , &
-         flux1_out                  = prod10_nflux             , &
-         flux2_out                  = wood_product_nflux       , &
-         seed                       = seed_deadstemn_patch     )
+         flux1_fraction_by_pft_type = pprod10                  , &
+         var                        = deadstemn_patch_temp(begp:endp)     , &
+         flux1_out                  = prod10_nflux(begp:endp)             , &
+         flux2_out                  = wood_product_nflux(begp:endp)       , &
+         seed                       = seed_deadstemn_patch(begp:endp)     )
 
     ! 11) PROD100_NFLUX
     wood_product_nflux(begp:endp)      = 0._r8
-    deadstemn_patch_temp(begp:endp)    = veg_ns%deadstemn(begp:endp)
+    deadstemn_patch_temp(begp:endp)    = deadstemn(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(patch_state_updater , &
          bounds                                                           , &
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
-         flux1_fraction_by_pft_type = pprod100                            , &
-         var                        = deadstemn_patch_temp     , &
-         flux1_out                  = prod100_nflux            , &
-         flux2_out                  = wood_product_nflux       , &
-         seed                       = seed_deadstemn_patch    )
+         flux1_fraction_by_pft_type = pprod100                 , &
+         var                        = deadstemn_patch_temp(begp:endp)     , &
+         flux1_out                  = prod100_nflux       (begp:endp)     , &
+         flux2_out                  = wood_product_nflux  (begp:endp)     , &
+         seed                       = seed_deadstemn_patch(begp:endp)    )
 
     ! 12) DEADSTEMN_PATCH
     wood_product_nflux(begp:endp)      = 0._r8
@@ -677,127 +728,127 @@ contains
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
          flux1_fraction_by_pft_type = pconv                               , &
-         var                        = veg_ns%deadstemn       , &
-         flux1_out                  = conv_nflux               , &
-         flux2_out                  = wood_product_nflux       , &
-         seed                       = seed_deadstemn_patch     , &
-         seed_addition              = dwt_deadstemn_seed   )
+         var                        = deadstemn            (begp:endp) , &
+         flux1_out                  = conv_nflux           (begp:endp)    , &
+         flux2_out                  = wood_product_nflux   (begp:endp)    , &
+         seed                       = seed_deadstemn_patch (begp:endp)    , &
+         seed_addition              = dwt_deadstemn_seed   (begp:endp))
 
     ! 13) DEADSTEMN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%deadstemn_storage  , &
-         flux_out_grc_area = conv_nflux)
+         var               = deadstemn_storage(begp:endp)  , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 14) DEADSTEMN_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%deadstemn_xfer     , &
-         flux_out_grc_area = conv_nflux)
+         var               = deadstemn_xfer (begp:endp)    , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 15) LIVECROOTN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livecrootn         , &
-         flux_out_col_area = dwt_livecrootn_to_litter)
+         var               = livecrootn (begp:endp)        , &
+         flux_out_col_area = dwt_livecrootn_to_litter(begp:endp))
 
     ! 16) LIVECROOTN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livecrootn_storage , &
-         flux_out_grc_area = conv_nflux)
+         var               = livecrootn_storage(begp:endp) , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 17) LIVECROOTN_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%livecrootn_xfer    , &
-         flux_out_grc_area = conv_nflux)
+         var               = livecrootn_xfer(begp:endp)    , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 18) DEADCROOTN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%deadcrootn         , &
-         flux_out_col_area = dwt_deadcrootn_to_litter)
+         var               = deadcrootn (begp:endp)        , &
+         flux_out_col_area = dwt_deadcrootn_to_litter(begp:endp))
 
     ! 19) DEADCROOTN_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%deadcrootn_storage , &
-         flux_out_grc_area = conv_nflux)
+         var               = deadcrootn_storage(begp:endp) , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 20) DEADCROOT_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%deadcrootn_xfer    , &
-         flux_out_grc_area = conv_nflux)
+         var               = deadcrootn_xfer(begp:endp)    , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 21) RETRANSN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%retransn           , &
-         flux_out_grc_area = conv_nflux)
+         var               = retransn(begp:endp)           , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 22) NTRUNC_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%ntrunc             , &
-         flux_out_grc_area = conv_nflux)
+         var               = ntrunc    (begp:endp)         , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 23) CPOOL_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%npool              , &
-         flux_out_grc_area = conv_nflux)
+         var               = npool   (begp:endp)           , &
+         flux_out_grc_area = conv_nflux(begp:endp))
 
     ! 24) DISPVEGN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%dispvegn)
+         var               = dispvegn(begp:endp))
 
     ! 25) STORVEGN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%storvegn)
+         var               = storvegn(begp:endp))
 
     ! 26) TOTVEGN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%totvegn)
+         var               = totvegn(begp:endp))
 
     ! 27) TOTPFTN_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ns%totpftn)
+         var               = totpftn(begp:endp))
 
     if (use_crop) then
        ! This is a negative pool. So any deficit that we haven't repaid gets sucked out
@@ -806,8 +857,8 @@ contains
             bounds                                        , &
             num_filterp_with_inactive                     , &
             filterp_with_inactive                         , &
-            var = veg_ns%cropseedn_deficit , &
-            flux_out_grc_area = conv_nflux)
+            var = cropseedn_deficit(begp:endp) , &
+            flux_out_grc_area = conv_nflux(begp:endp))
     end if
 
     ! These fluxes are computed as negative quantities, but are expected to be positive,
@@ -817,7 +868,7 @@ contains
        dwt_livecrootn_to_litter(p) = -1._r8 * dwt_livecrootn_to_litter(p)
        dwt_deadcrootn_to_litter(p) = -1._r8 * dwt_deadcrootn_to_litter(p)
     end do
-
+   end associate
   end subroutine dyn_veg_ns_Adjustments
 
   !-----------------------------------------------------------------------
@@ -843,58 +894,55 @@ contains
     integer                     :: l, j
     integer                     :: begc, endc
     real(r8)                    :: adjustment_one_level(bounds%begc:bounds%endc)
-    real(r8)  :: col_slice(bounds%begc:bounds%endc)
-    !character(len=*), parameter :: subname = 'NStateDynamicColumnAdjustments'
     !-----------------------------------------------------------------------
+    associate(&
+      decomp_npools_vr    => col_ns%decomp_npools_vr , &
+      ntrunc_vr           => col_ns%ntrunc_vr      , &
+      sminn_vr            => col_ns%sminn_vr &
+      )
 
     begc = bounds%begc
     endc = bounds%endc
     col_ns%dyn_nbal_adjustments(begc:endc) = 0._r8
     do l = 1, ndecomp_pools
        do j = 1, nlevdecomp
-         col_slice = col_ns%decomp_npools_vr(begc:endc, j, l)
           call update_column_state_no_special_handling_acc(column_state_updater, &
                bounds      = bounds,                                         &
                clump_index = clump_index,                                    &
-               var         = col_slice,     &
-               adjustment  = adjustment_one_level)
+               var         = decomp_npools_vr(begc:endc, j, l),     &
+               adjustment  = adjustment_one_level(begc:endc))
 
           col_ns%dyn_nbal_adjustments(begc:endc) = &
                col_ns%dyn_nbal_adjustments(begc:endc) + &
                adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-          col_ns%decomp_npools_vr(begc:endc, j, l) = col_slice
        end do
     end do
 
     do j = 1, nlevdecomp
-      col_slice = col_ns%ntrunc_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc(column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,     &
-            adjustment  = adjustment_one_level)
+            var         = ntrunc_vr(begc:endc,j),     &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ns%dyn_nbal_adjustments(begc:endc) = &
             col_ns%dyn_nbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-       col_ns%ntrunc_vr(begc:endc,j) = col_slice
 
-       col_slice = col_ns%sminn_vr(begc:endc, j)
        call update_column_state_no_special_handling_acc(column_state_updater, &
            bounds      = bounds                          , &
            clump_index = clump_index                     , &
-           var         =  col_slice, &
-           adjustment  = adjustment_one_level)
+           var         = sminn_vr(begc:endc, j), &
+           adjustment  = adjustment_one_level(begc:endc))
 
        col_ns%dyn_nbal_adjustments(begc:endc) = &
            col_ns%dyn_nbal_adjustments(begc:endc) + &
            adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-        col_ns%sminn_vr(begc:endc, j) = col_slice
     end do
-
+    end associate
   end subroutine dyn_col_ns_Adjustments
 
   !-----------------------------------------------------------------------
@@ -964,7 +1012,34 @@ contains
 
     !character(len=*), parameter :: subname = 'dyn_veg_ps_Adjustments'
     !-----------------------------------------------------------------------
-
+    associate(&
+      leafp          => veg_ps%leafp         , &
+      leafp_storage  => veg_ps%leafp_storage , &
+      leafp_xfer     => veg_ps%leafp_xfer    , &
+      frootp         => veg_ps%frootp                ,&
+      frootp_storage => veg_ps%frootp_storage  ,&
+      frootp_xfer    => veg_ps%frootp_xfer    , &
+      livestemp         => veg_ps%livestemp                ,&
+      livestemp_storage => veg_ps%livestemp_storage  ,&
+      livestemp_xfer    => veg_ps%livestemp_xfer    , &
+      deadstemp         => veg_ps%deadstemp                ,&
+      deadstemp_storage => veg_ps%deadstemp_storage  ,&
+      deadstemp_xfer    => veg_ps%deadstemp_xfer    , &
+      livecrootp         => veg_ps%livecrootp          ,&
+      livecrootp_storage => veg_ps%livecrootp_storage  ,&
+      livecrootp_xfer    => veg_ps%livecrootp_xfer    , &
+      deadcrootp         => veg_ps%deadcrootp                ,&
+      deadcrootp_storage => veg_ps%deadcrootp_storage  ,&
+      deadcrootp_xfer    => veg_ps%deadcrootp_xfer    , &
+      retransp           => veg_ps%retransp  ,&
+      ppool              => veg_ps%ppool    , &
+      ptrunc             => veg_ps%ptrunc      , &
+      dispvegp           => veg_ps%dispvegp  , &
+      storvegp           => veg_ps%storvegp  , &
+      totvegp            => veg_ps%totvegp   , &
+      totpftp            => veg_ps%totpftp   , &
+      cropseedp_deficit  => veg_ps%cropseedp_deficit &
+      )
     begp = bounds%begp
     endp = bounds%endp
 
@@ -974,13 +1049,11 @@ contains
 
     call ComputeSeedAmounts(bounds                                        , &
          species                    = CN_SPECIES_P                        , &
-         leaf_patch                 = veg_ps%leafp           , &
-         leaf_storage_patch         = veg_ps%leafp_storage   , &
-         leaf_xfer_patch            = veg_ps%leafp_xfer      , &
-
+         leaf_patch                 = leafp        (begp:endp)     , &
+         leaf_storage_patch         = leafp_storage(begp:endp)     , &
+         leaf_xfer_patch            = leafp_xfer   (begp:endp)     , &
          ! Calculations only needed for patches that grew:
          compute_here_patch         = patch_grew(begp:endp)               , &
-
          ! For patches that previously had zero area, ignore the current state for the
          ! sake of computing leaf proportions:
          ignore_current_state_patch = old_weight_was_zero(begp:endp)      , &
@@ -997,80 +1070,80 @@ contains
          bounds                                           , &
          num_filterp_with_inactive                        , &
          filterp_with_inactive                            , &
-         var               = veg_ps%leafp    , &
-         flux_out_grc_area = conv_pflux        , &
-         seed              = seed_leafp_patch  , &
-         seed_addition     = dwt_leafp_seed   )
+         var               = leafp           (begp:endp)  , &
+         flux_out_grc_area = conv_pflux      (begp:endp)  , &
+         seed              = seed_leafp_patch(begp:endp)  , &
+         seed_addition     = dwt_leafp_seed  (begp:endp) )
 
     ! 2) LEAFP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                   , &
          num_filterp_with_inactive                                , &
          filterp_with_inactive                                    , &
-         var               = veg_ps%leafp_storage    , &
-         flux_out_grc_area = conv_pflux                , &
-         seed              = seed_leafp_storage_patch  , &
-         seed_addition     = dwt_leafp_seed           )
+         var               = leafp_storage           (begp:endp)  , &
+         flux_out_grc_area = conv_pflux              (begp:endp)  , &
+         seed              = seed_leafp_storage_patch(begp:endp)  , &
+         seed_addition     = dwt_leafp_seed          (begp:endp) )
 
     ! 3) LEAFP_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                        , &
          num_filterp_with_inactive                                     , &
          filterp_with_inactive                                         , &
-         var               = veg_ps%leafp_xfer   , &
-         flux_out_grc_area = conv_pflux            , &
-         seed              = seed_leafp_xfer_patch , &
-         seed_addition     = dwt_leafp_seed        )
+         var               = leafp_xfer    (begp:endp) , &
+         flux_out_grc_area = conv_pflux           (begp:endp) , &
+         seed              = seed_leafp_xfer_patch(begp:endp) , &
+         seed_addition     = dwt_leafp_seed       (begp:endp) )
 
     ! 4) FROOTP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%frootp             , &
-         flux_out_col_area = dwt_frootp_to_litter)
+         var               = frootp       (begp:endp)      , &
+         flux_out_col_area = dwt_frootp_to_litter(begp:endp))
 
     ! 5) FROOTP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%frootp_storage     , &
-         flux_out_grc_area = conv_pflux)
+         var               = frootp_storage(begp:endp)     , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 6) FROOTP_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%frootp_xfer        , &
-         flux_out_grc_area = conv_pflux)
+         var               = frootp_xfer(begp:endp)        , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 7) PROD10_PFLUX
     wood_product_pflux(begp:endp)      = 0._r8
-    deadstemp_patch_temp(begp:endp)    = veg_ps%deadstemp(begp:endp)
+    deadstemp_patch_temp(begp:endp)    = deadstemp(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(patch_state_updater, &
          bounds                                                           , &
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
          flux1_fraction_by_pft_type = pprod10                             , &
-         var                        = deadstemp_patch_temp     , &
-         flux1_out                  = prod10_pflux             , &
-         flux2_out                  = wood_product_pflux       , &
-         seed                       = seed_deadstemp_patch     )
+         var                        = deadstemp_patch_temp(begp:endp)     , &
+         flux1_out                  = prod10_pflux        (begp:endp)     , &
+         flux2_out                  = wood_product_pflux  (begp:endp)     , &
+         seed                       = seed_deadstemp_patch(begp:endp)     )
 
     ! 8) PROD100_PFLUX
     wood_product_pflux(begp:endp)      = 0._r8
-    deadstemp_patch_temp(begp:endp)    = veg_ps%deadstemp(begp:endp)
+    deadstemp_patch_temp(begp:endp)    = deadstemp(begp:endp)
     call update_patch_state_partition_flux_by_typeAcc(patch_state_updater, &
          bounds                                                           , &
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
          flux1_fraction_by_pft_type = pprod100                            , &
-         var                        = deadstemp_patch_temp     , &
-         flux1_out                  = prod100_pflux            , &
-         flux2_out                  = wood_product_pflux       , &
-         seed                       = seed_deadstemp_patch    )
+         var                        = deadstemp_patch_temp(begp:endp)     , &
+         flux1_out                  = prod100_pflux       (begp:endp)     , &
+         flux2_out                  = wood_product_pflux  (begp:endp)     , &
+         seed                       = seed_deadstemp_patch(begp:endp)    )
 
     ! 9) DEADSTEMP_PATCH
     wood_product_pflux(begp:endp)      = 0._r8
@@ -1079,151 +1152,151 @@ contains
          num_filterp_with_inactive                                        , &
          filterp_with_inactive                                            , &
          flux1_fraction_by_pft_type = pconv                               , &
-         var                        = veg_ps%deadstemp       , &
-         flux1_out                  = conv_pflux               , &
-         flux2_out                  = wood_product_pflux       , &
-         seed                       = seed_deadstemp_patch     , &
-         seed_addition              = dwt_deadstemp_seed   )
+         var                        = deadstemp           (begp:endp)  , &
+         flux1_out                  = conv_pflux          (begp:endp)     , &
+         flux2_out                  = wood_product_pflux  (begp:endp)     , &
+         seed                       = seed_deadstemp_patch(begp:endp)     , &
+         seed_addition              = dwt_deadstemp_seed  (begp:endp) )
 
     ! 10) DEADSTEMP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%deadstemp_storage  , &
-         flux_out_grc_area = conv_pflux)
+         var               = deadstemp_storage(begp:endp)  , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 11) DEADSTEMP_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%deadstemp_xfer     , &
-         flux_out_grc_area = conv_pflux)
+         var               = deadstemp_xfer(begp:endp)     , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 12) LIVESTEMP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livestemp          , &
-         flux_out_grc_area = conv_pflux)
+         var               = livestemp(begp:endp)          , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 13) LIVESTEMP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livestemp_storage  , &
-         flux_out_grc_area = conv_pflux)
+         var               = livestemp_storage(begp:endp)  , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 14) LIVESTEMP_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livestemp_xfer     , &
-         flux_out_grc_area = conv_pflux)
+         var               = livestemp_xfer(begp:endp)     , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 15) LIVECROOTP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livecrootp         , &
-         flux_out_col_area = dwt_livecrootp_to_litter)
+         var               = livecrootp(begp:endp)         , &
+         flux_out_col_area = dwt_livecrootp_to_litter(begp:endp))
 
     ! 16) LIVECROOTP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livecrootp_storage , &
-         flux_out_grc_area = conv_pflux)
+         var               = livecrootp_storage(begp:endp) , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 17) LIVECROOTP_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%livecrootp_xfer    , &
-         flux_out_grc_area = conv_pflux)
+         var               = livecrootp_xfer(begp:endp)    , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 18) DEADCROOTP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%deadcrootp         , &
-         flux_out_col_area = dwt_deadcrootp_to_litter)
+         var               = deadcrootp(begp:endp)         , &
+         flux_out_col_area = dwt_deadcrootp_to_litter(begp:endp))
 
     ! 19) DEADCROOTP_STORAGE_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%deadcrootp_storage , &
-         flux_out_grc_area = conv_pflux)
+         var               = deadcrootp_storage(begp:endp) , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 20) DEADCROOT_XFER_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%deadcrootp_xfer    , &
-         flux_out_grc_area = conv_pflux)
+         var               = deadcrootp_xfer (begp:endp)   , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 21) RETRANSP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%retransp           , &
-         flux_out_grc_area = conv_pflux)
+         var               = retransp (begp:endp)          , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 22) PTRUNC_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%ptrunc             , &
-         flux_out_grc_area = conv_pflux)
+         var               = ptrunc(begp:endp)             , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 23) PPOOL_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%ppool              , &
-         flux_out_grc_area = conv_pflux)
+         var               = ppool(begp:endp)              , &
+         flux_out_grc_area = conv_pflux(begp:endp))
 
     ! 24) DISPVEGP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%dispvegp)
+         var               = dispvegp(begp:endp))
 
     ! 25) STORVEGP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%storvegp)
+         var               = storvegp(begp:endp))
 
     ! 26) TOTVEGP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%totvegp)
+         var               = totvegp(begp:endp))
 
     ! 27) TOTPFTP_PATCH
     call update_patch_stateAcc(patch_state_updater,       &
          bounds                                                     , &
          num_filterp_with_inactive                                  , &
          filterp_with_inactive                                      , &
-         var               = veg_ps%totpftp)
+         var               = totpftp(begp:endp))
 
     if (use_crop) then
        ! This is a negative pool. So any deficit that we haven't repaid gets sucked out
@@ -1232,8 +1305,8 @@ contains
             bounds                                        , &
             num_filterp_with_inactive                     , &
             filterp_with_inactive                         , &
-            var = veg_ps%cropseedp_deficit , &
-            flux_out_grc_area = conv_pflux)
+            var = cropseedp_deficit(begp:endp) , &
+            flux_out_grc_area = conv_pflux(begp:endp))
     end if
 
     ! These fluxes are computed as negative quantities, but are expected to be positive,
@@ -1243,7 +1316,7 @@ contains
        dwt_livecrootp_to_litter(p) = -1._r8 * dwt_livecrootp_to_litter(p)
        dwt_deadcrootp_to_litter(p) = -1._r8 * dwt_deadcrootp_to_litter(p)
     end do
-
+    end associate
   end subroutine dyn_veg_ps_Adjustments
 
   !-----------------------------------------------------------------------
@@ -1269,83 +1342,81 @@ contains
     integer           :: l, j
     integer           :: begc, endc
     real(r8)          :: adjustment_one_level(bounds%begc:bounds%endc)
-    real(r8)  :: col_slice(bounds%begc:bounds%endc)
-    !character(len=*), parameter :: subname = 'NStateDynamicColumnAdjustments'
     !-----------------------------------------------------------------------
-
+    associate(&
+      decomp_ppools_vr    => col_ps%decomp_ppools_vr , &
+      ptrunc_vr           => col_ps%ptrunc_vr      , &
+      solutionp_vr        => col_ps%solutionp_vr , &
+      labilep_vr          => col_ps%labilep_vr , &
+      secondp_vr          => col_ps%secondp_vr &
+      )
     begc = bounds%begc
     endc = bounds%endc
 
     col_ps%dyn_pbal_adjustments(begc:endc) = 0._r8
     do l = 1, ndecomp_pools
        do j = 1, nlevdecomp
-         col_slice = col_ps%decomp_ppools_vr(begc:endc, j, l)
+
+         !col_slice = col_ps%decomp_ppools_vr(begc:endc,j,l)
+
           call update_column_state_no_special_handling_acc( column_state_updater, &
                bounds      = bounds,                                         &
                clump_index = clump_index,                                    &
-               var         = col_slice,     &
-               adjustment  = adjustment_one_level)
+               var         = decomp_ppools_vr(begc:endc, j, l),     &
+               adjustment  = adjustment_one_level(begc:endc) )
 
           col_ps%dyn_pbal_adjustments(begc:endc) =      &
                col_ps%dyn_pbal_adjustments(begc:endc) + &
                adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-          col_ps%decomp_ppools_vr(begc:endc, j, l) = col_slice
        end do
     end do
 
     do j = 1, nlevdecomp
-      col_slice = col_ps%ptrunc_vr(begc:endc,j)
+      !col_slice = col_ps%ptrunc_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,                &
-            adjustment  = adjustment_one_level)
+            var         = ptrunc_vr(begc:endc,j),                &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-
-       col_ps%ptrunc_vr(begc:endc,j) = col_slice
-       !
-       col_slice = col_ps%solutionp_vr(begc:endc,j)
-       call update_column_state_no_special_handling_acc( column_state_updater, &
-            bounds      = bounds,                                         &
-            clump_index = clump_index,                                    &
-            var         = col_slice,             &
-            adjustment  = adjustment_one_level)
-
-       col_ps%dyn_pbal_adjustments(begc:endc) =      &
-            col_ps%dyn_pbal_adjustments(begc:endc) + &
-            adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-
-       col_ps%solutionp_vr(begc:endc,j) = col_slice
-       !
-       col_slice = col_ps%labilep_vr(begc:endc,j)
-       call update_column_state_no_special_handling_acc( column_state_updater, &
-            bounds      = bounds,                                         &
-            clump_index = clump_index,                                    &
-            var         = col_slice,               &
-            adjustment  = adjustment_one_level)
-
-       col_ps%dyn_pbal_adjustments(begc:endc) =      &
-            col_ps%dyn_pbal_adjustments(begc:endc) + &
-            adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-
-       col_ps%labilep_vr(begc:endc,j) = col_slice
        !!
-       col_slice = col_ps%secondp_vr(begc:endc,j)
+       !col_slice = col_ps%solutionp_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,               &
-            adjustment  = adjustment_one_level)
+            var         = solutionp_vr(begc:endc,j),             &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-       col_ps%secondp_vr(begc:endc,j) = col_slice
+        !!
+       call update_column_state_no_special_handling_acc( column_state_updater, &
+            bounds      = bounds,                                         &
+            clump_index = clump_index,                                    &
+            var         = labilep_vr(begc:endc,j),               &
+            adjustment  = adjustment_one_level(begc:endc))
+
+       col_ps%dyn_pbal_adjustments(begc:endc) =      &
+            col_ps%dyn_pbal_adjustments(begc:endc) + &
+            adjustment_one_level(begc:endc) * dzsoi_decomp(j)
+       !!
+       call update_column_state_no_special_handling_acc( column_state_updater, &
+            bounds      = bounds,                                         &
+            clump_index = clump_index,                                    &
+            var         = secondp_vr(begc:endc,j),               &
+            adjustment  = adjustment_one_level(begc:endc))
+
+       col_ps%dyn_pbal_adjustments(begc:endc) =      &
+            col_ps%dyn_pbal_adjustments(begc:endc) + &
+            adjustment_one_level(begc:endc) * dzsoi_decomp(j)
+
     end do
+    end associate
 
   end subroutine dyn_col_ps_Adjustments
 
@@ -1371,8 +1442,14 @@ contains
     integer                     :: l, j
     integer                     :: begc, endc
     real(r8)                    :: adjustment_one_level(bounds%begc:bounds%endc)
-    real(r8)  :: col_slice(bounds%begc:bounds%endc)
     !-----------------------------------------------------------------------
+    associate(&
+      decomp_ppools_vr    => col_ps%decomp_ppools_vr , &
+      ptrunc_vr           => col_ps%ptrunc_vr      , &
+      solutionp_vr        => col_ps%solutionp_vr , &
+      labilep_vr          => col_ps%labilep_vr , &
+      secondp_vr          => col_ps%secondp_vr &
+      )
     begc = bounds%begc
     endc = bounds%endc
     !allocate(col_slice(begc:endc))
@@ -1381,73 +1458,67 @@ contains
     do l = 1, ndecomp_pools
        do j = 1, nlevdecomp
 
-         col_slice = col_ps%decomp_ppools_vr(begc:endc,j,l)
+         !col_slice = col_ps%decomp_ppools_vr(begc:endc,j,l)
 
           call update_column_state_no_special_handling_acc( column_state_updater, &
                bounds      = bounds,                                         &
                clump_index = clump_index,                                    &
-               var         = col_slice, &!col_ps%decomp_ppools_vr(begc:endc, j, l),     &
-               adjustment  = adjustment_one_level )
+               var         = decomp_ppools_vr(begc:endc, j, l),     &
+               adjustment  = adjustment_one_level(begc:endc) )
 
           col_ps%dyn_pbal_adjustments(begc:endc) =      &
                col_ps%dyn_pbal_adjustments(begc:endc) + &
                adjustment_one_level(begc:endc) * dzsoi_decomp(j)
 
-          col_ps%decomp_ppools_vr(begc:endc,j,l) = col_slice
        end do
     end do
 
     do j = 1, nlevdecomp
-      col_slice = col_ps%ptrunc_vr(begc:endc,j)
+      !col_slice = col_ps%ptrunc_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,                &
-            adjustment  = adjustment_one_level)
+            var         = ptrunc_vr(begc:endc,j),                &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-
-       col_ps%ptrunc_vr(begc:endc,j) = col_slice
        !!
-       col_slice = col_ps%solutionp_vr(begc:endc,j)
+       !col_slice = col_ps%solutionp_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,             &
-            adjustment  = adjustment_one_level)
+            var         = solutionp_vr(begc:endc,j),             &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-       col_ps%solutionp_vr(begc:endc,j) = col_slice
         !!
-       col_slice = col_ps%labilep_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,               &
-            adjustment  = adjustment_one_level)
+            var         = labilep_vr(begc:endc,j),               &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-       col_ps%labilep_vr(begc:endc,j) = col_slice
        !!
-       col_slice = col_ps%secondp_vr(begc:endc,j)
        call update_column_state_no_special_handling_acc( column_state_updater, &
             bounds      = bounds,                                         &
             clump_index = clump_index,                                    &
-            var         = col_slice,               &
-            adjustment  = adjustment_one_level)
+            var         = secondp_vr(begc:endc,j),               &
+            adjustment  = adjustment_one_level(begc:endc))
 
        col_ps%dyn_pbal_adjustments(begc:endc) =      &
             col_ps%dyn_pbal_adjustments(begc:endc) + &
             adjustment_one_level(begc:endc) * dzsoi_decomp(j)
-        col_ps%secondp_vr(begc:endc,j) = col_slice
+
     end do
-    !deallocate(col_slice)
+    end associate
+
   end subroutine dyn_col_ps_Adjustments_acc
 
 

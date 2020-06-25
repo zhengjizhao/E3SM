@@ -131,7 +131,6 @@ contains
     !
       !$acc routine seq
     use tracer_varcon       , only : is_active_betr_bgc
-    use subgridAveMod       , only : p2c
     use decompMod           , only : bounds_type
     ! !ARGUMENTS:
     type(bounds_type)            , intent(in)    :: bounds

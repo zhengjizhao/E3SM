@@ -233,9 +233,9 @@ contains
       ITERATION : do while( iter < niters)
 
          call FrictionVelocity(begp, endp, fn, filterp, &
-              displa, z0mg_patch, z0hg_patch, z0qg_patch, &
-              obu, iter+1, ur, um, ustar, &
-              temp1, temp2, temp12m, temp22m, fm, &
+              displa(begp:endp), z0mg_patch(begp:endp), z0hg_patch(begp:endp), z0qg_patch(begp:endp), &
+              obu(begp:endp), iter+1, ur(begp:endp), um(begp:endp), ustar(begp:endp), &
+              temp1(begp:endp), temp2(begp:endp), temp12m(begp:endp), temp22m(begp:endp), fm(begp:endp), &
               frictionvel_vars)
 
          do f = 1, fn

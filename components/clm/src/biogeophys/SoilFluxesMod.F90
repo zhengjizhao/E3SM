@@ -163,11 +163,6 @@ contains
          errsoi_patch            => veg_ef%errsoi              & ! Output: [real(r8) (:)   ]  pft-level soil/lake energy conservation error (W/m**2)
          )
 
-      ! Get step size
-
-      !#py dtime = get_step_size()
-
-      !#py call t_startf('bgp2_loop_1')
       do fc = 1,num_nolakec
          c = filter_nolakec(fc)
          j = col_pp%snl(c)+1
@@ -447,8 +442,8 @@ contains
       ! therefore obtain column-level radiative temperature
 
       call p2c(bounds, num_nolakec, filter_nolakec, &
-           errsoi_patch, &
-           errsoi_col)
+           errsoi_patch(bounds%begp:bounds%endp), &
+           errsoi_col(bounds%begc:bounds%endc))
 
       !#py call t_stopf('bgp2_loop_4')
 

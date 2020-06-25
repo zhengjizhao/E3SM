@@ -6,12 +6,10 @@ module EcosystemBalanceCheckMod
   !
   ! !USES:
   use shr_kind_mod        , only : r8 => shr_kind_r8
-  !#py !#py use shr_infnan_mod      , only : nan => shr_infnan_nan, assignment(=)
   use shr_log_mod         , only : errMsg => shr_log_errMsg
   use decompMod           , only : bounds_type
   use abortutils          , only : endrun
   use clm_varctl          , only : iulog, use_nitrif_denitrif, use_fates
-  !#py use clm_time_manager    , only : get_step_size,get_nstep
   use clm_varpar          , only : crop_prog
   use clm_varpar          , only : nlevdecomp
   use clm_varcon          , only : dzsoi_decomp
@@ -24,7 +22,6 @@ module EcosystemBalanceCheckMod
   ! bgc interface & pflotran:
   use clm_varctl          , only : use_pflotran, pf_cmode, pf_hmode
   ! forest fertilization experiment
-  !#py use clm_time_manager    , only : get_curr_date
   use CNStateType         , only : fert_type , fert_continue, fert_dose, fert_start, fert_end
   use clm_varctl          , only : forest_fert_exp
   use pftvarcon           , only: noveg
@@ -37,8 +34,6 @@ module EcosystemBalanceCheckMod
   use ColumnDataType      , only : col_ns, col_nf, col_ps, col_pf
   use VegetationType      , only : veg_pp
   use VegetationDataType  , only : veg_cf, veg_nf, veg_pf
-
-
   !
   implicit none
   save
@@ -210,8 +205,6 @@ contains
          )
 
       ! set time steps
-      !#py dt = real( get_step_size(), r8 )
-
       err_found = .false.
       ! column loop
       do fc = 1,num_soilc
@@ -528,17 +521,15 @@ contains
          )
 
       ! set time steps
-      !#py dt = real( get_step_size(), r8 )
-      !#py call get_curr_date(kyr, kmo, kda, mcsec)
-
       err_found = .false.
 
       call p2c(bounds,num_soilc,filter_soilc, &
-           leafp_to_litter, &
-           leafp_to_litter_col)
+           leafp_to_litter(bounds%begp:bounds%endp), &
+           leafp_to_litter_col(bounds%begc:bounds%endc))
+      
       call p2c(bounds,num_soilc,filter_soilc, &
-           frootp_to_litter, &
-           frootp_to_litter_col)
+           frootp_to_litter(bounds%begp:bounds%endp), &
+           frootp_to_litter_col(bounds%begc:bounds%endc))
 
       !! immobilization/mineralization in litter-to-SOM and SOM-to-SOM fluxes
       ! column loop
@@ -668,8 +659,8 @@ contains
          )
 
       call c2g( bounds = bounds, &
-           carr = totcolc, &
-           garr = begcb_grc, &
+           carr = totcolc(bounds%begc:bounds%endc), &
+           garr = begcb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 
@@ -695,8 +686,8 @@ contains
          )
 
       call c2g( bounds = bounds, &
-           carr = totcoln, &
-           garr = begnb_grc, &
+           carr = totcoln(bounds%begc:bounds%endc), &
+           garr = begnb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 
@@ -723,8 +714,8 @@ contains
          )
 
       call c2g( bounds = bounds, &
-           carr = totcolp, &
-           garr = begpb_grc, &
+           carr = totcolp(bounds%begc:bounds%endc), &
+           garr = begpb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 
@@ -776,8 +767,8 @@ contains
       err_found = .false.
 
       call c2g( bounds = bounds, &
-           carr = totcolc, &
-           garr = endcb_grc, &
+           carr = totcolc(bounds%begc:bounds%endc), &
+           garr = endcb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 
@@ -862,8 +853,8 @@ contains
       err_found = .false.
 
       call c2g( bounds = bounds, &
-           carr = totcoln, &
-           garr = endnb_grc, &
+           carr = totcoln(bounds%begc:bounds%endc), &
+           garr = endnb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 
@@ -954,8 +945,8 @@ contains
       err_found = .false.
 
       call c2g( bounds = bounds, &
-           carr = totcolp, &
-           garr = endpb_grc, &
+           carr = totcolp(bounds%begc:bounds%endc), &
+           garr = endpb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type = 0, &
            l2g_scale_type = 0)
 

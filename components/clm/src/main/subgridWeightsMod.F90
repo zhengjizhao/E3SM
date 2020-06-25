@@ -274,19 +274,8 @@ subroutine set_active(bounds)
   ! !LOCAL VARIABLES:
   integer :: l,c,p       ! loop counters
   !------------------------------------------------------------------------
-  call is_active_l_gpu(bounds,lun_pp%active)
-  !!do l = bounds%begl,bounds%endl
-  !!   lun_pp%active(l) = is_active_l(l)
-  !!end do
-  call is_active_c_gpu(bounds,col_pp%active)
-  !!!do c = bounds%begc,bounds%endc
-  !!!   l = col_pp%landunit(c)
-  !!!   col_pp%active(c) = is_active_c(c)
-  !!!   if (col_pp%active(c) .and. .not. lun_pp%active(l)) then
-  !!!      print *, ' ERROR: active column found on inactive landunit', &
-  !!!                     'at c = ', c, ', l = ', l
-  !!!   end if
-  !!!end do
+  call is_active_l_gpu(bounds )
+  call is_active_c_gpu(bounds )
 
   do p = bounds%begp,bounds%endp
      c = veg_pp%column(p)
@@ -379,37 +368,38 @@ subroutine set_active(bounds)
 
   end function is_active_l
   !-----------------------------------------------------------------------
-  subroutine is_active_l_gpu(bounds,lun_pp_active)
+  subroutine is_active_l_gpu(bounds )
     !
     ! !DESCRIPTION:
     ! Determine whether the given landunit is active
     !$acc routine seq
     ! !USES:
     use landunit_varcon, only : istsoil, istice, istice_mec
-    use domainMod , only : ldomain
+    use domainMod      , only : ldomain
     !
     ! !ARGUMENTS:
     implicit none
     !
     ! !LOCAL VARIABLES:
     type(bounds_type)  , intent(in) :: bounds
-    logical ,intent(inout) :: lun_pp_active(bounds%begl:)
     integer :: g,t,l  ! grid cell index
     !------------------------------------------------------------------------
     do l = bounds%begl, bounds%endl
       if (all_active) then
-        lun_pp_active(l) = .true.
+        lun_pp%active(l) = .true.
 
       else
         g = lun_pp%gridcell(l)
-        lun_pp_active(l) = .false.
+        t = lun_pp%topounit(l)
+        lun_pp%active(l) = .false.
+        
+        if (lun_pp%wttopounit(l) > 0) lun_pp%active(l) = .true.
+        if (lun_pp%itype(l) == istice_mec .and. ldomain%glcmask(g) == 1) lun_pp%active(l) = .true.
 
-        if (lun_pp%wttopounit(l) > 0) lun_pp_active(l) = .true.
-        if (lun_pp%itype(l) == istice_mec .and. ldomain%glcmask(g) == 1) lun_pp_active(l) = .true.
-
-        if (lun_pp%itype(l) == istsoil .and. .not. is_topo_all_ltypeX(lun_pp%topounit(l), istice)) then
-            lun_pp_active(l) = .true.
+        if (lun_pp%itype(l) == istsoil .and. .not. is_topo_all_ltypeX(t, istice)) then
+            lun_pp%active(l) = .true.
         end if
+
       end if
     end do
 
@@ -473,7 +463,7 @@ subroutine set_active(bounds)
 
   end function is_active_c
   !-----------------------------------------------------------------------
-  subroutine is_active_c_gpu(bounds, col_pp_active)
+  subroutine is_active_c_gpu(bounds )
     !
     ! !DESCRIPTION:
     ! Determine whether the given column is active
@@ -485,7 +475,6 @@ subroutine set_active(bounds)
     ! !ARGUMENTS:
     implicit none
     type(bounds_type), intent(in) :: bounds   ! column index
-    logical , intent(inout)  :: col_pp_active(bounds%begc:)
     !
     ! !LOCAL VARIABLES:
     integer :: l  ! landunit index
@@ -493,25 +482,27 @@ subroutine set_active(bounds)
     !------------------------------------------------------------------------
     do c = bounds%begc, bounds%endc
       if (all_active) then
-        col_pp_active(c) = .true.
+        col_pp%active(c) = .true.
 
       else
         l =col_pp%landunit(c)
         g =col_pp%gridcell(c)
-
-        col_pp_active(c) = .false.
-        if (lun_pp%active(l) .and. col_pp%wtlunit(c) > 0._r8) col_pp_active(c) = .true.
+        col_pp%active(c) = .false.
+        if (lun_pp%active(l) .and. col_pp%wtlunit(c) > 0._r8) col_pp%active(c) = .true.
         !
         !
-        if (lun_pp%itype(l) == istice_mec .and. ldomain%glcmask(g) == 1) col_pp_active(c) = .true.
+        if (lun_pp%itype(l) == istice_mec .and. ldomain%glcmask(g) == 1) col_pp%active(c) = .true.
+       
         if (lun_pp%active(l) .and. (lun_pp%itype(l) >= isturb_MIN .and. lun_pp%itype(l) <= isturb_MAX)) then
-            col_pp_active(c) = .true.
+            col_pp%active(c) = .true.
         end if
       end if
-      if (col_pp_active(c) .and. .not. lun_pp%active(l)) then
+      
+      if (col_pp%active(c) .and. .not. lun_pp%active(l)) then
          print *, ' ERROR: active column found on inactive landunit', &
                         'at c = ', c, ', l = ', l
       end if
+        
     end do
 
   end subroutine is_active_c_gpu

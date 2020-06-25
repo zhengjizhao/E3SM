@@ -360,6 +360,7 @@ contains
     ! Run clm model
     !
     ! !USES:
+    use MPI 
     use shr_kind_mod    ,  only : r8 => shr_kind_r8
     use clm_instMod     ,  only : lnd2atm_vars, atm2lnd_vars, lnd2glc_vars, glc2lnd_vars
     use clm_driver      ,  only : clm_drv
@@ -418,6 +419,8 @@ contains
     real(r8)     :: recip                ! reciprical
     logical,save :: first_call = .true.  ! first call work
     logical      :: atm_present
+    integer      :: step_count
+    real*8       :: starttime, stoptime 
     type(seq_infodata_type),pointer :: infodata             ! CESM information from the driver
     type(mct_gGrid),        pointer :: dom_l                ! Land model domain data
     type(bounds_type)               :: bounds               ! bounds
@@ -478,31 +481,26 @@ contains
     call seq_infodata_GetData( infodata, orb_eccen=eccen, orb_mvelpp=mvelpp, &
          orb_lambm0=lambm0, orb_obliqr=obliqr )
     
+    starttime = mpi_wtime()
     ! Loop over time steps in coupling interval
     dosend = .false.
+    step_count = 0
     do while(.not. dosend)
 
        ! Determine if dosend
        ! When time is not updated at the beginning of the loop - then return only if
        ! are in sync with clock before time is updated
 
-       call get_curr_date( yr, mon, day, tod )
-       ymd = yr*10000 + mon*100 + day
-       tod = tod
-       dosend = (seq_timemgr_EClockDateInSync( EClock, ymd, tod))
+       !call get_curr_date( yr, mon, day, tod )
+       !ymd = yr*10000 + mon*100 + day
+       !tod = tod
+       !dosend = (seq_timemgr_EClockDateInSync( EClock, ymd, tod))
 
        ! Determine doalb based on nextsw_cday sent from atm model
 
-       nstep = get_nstep()
-       caldayp1 = get_curr_calday(offset=dtime)
-       if (nstep == 0) then
-          doalb = .false.
-       else if (nstep == 1) then
-          doalb = (abs(nextsw_cday- caldayp1) < 1.e-10_r8)
-       else
-          doalb = (nextsw_cday >= -0.5_r8)
-       end if
-       call update_rad_dtime(doalb)
+       !nstep = get_nstep()
+       !caldayp1 = get_curr_calday(offset=dtime)
+       !call update_rad_dtime(doalb)
 
        ! Determine if time to write cam restart and stop
 
@@ -512,15 +510,16 @@ contains
        if (nlend_sync .and. dosend) nlend = .true.
 
        ! Run clm
-       call t_barrierf('sync_clm_run1', mpicom)
-       call t_startf ('clm_run')
-       call t_startf ('shr_orb_decl')
-       calday = get_curr_calday()
-       call shr_orb_decl( calday     , eccen, mvelpp, lambm0, obliqr, declin  , eccf )
-       call shr_orb_decl( nextsw_cday, eccen, mvelpp, lambm0, obliqr, declinp1, eccf )
-       call t_stopf ('shr_orb_decl')
-       call clm_drv(doalb, nextsw_cday, declinp1, declin, rstwr, nlend, rdate)
-       call t_stopf ('clm_run')
+       !call t_barrierf('sync_clm_run1', mpicom)
+       !call t_startf ('clm_run')
+       !call t_startf ('shr_orb_decl')
+       !calday = get_curr_calday()
+       !call shr_orb_decl( calday     , eccen, mvelpp, lambm0, obliqr, declin  , eccf )
+       !call shr_orb_decl( nextsw_cday, eccen, mvelpp, lambm0, obliqr, declinp1, eccf )
+       
+       !call t_stopf ('shr_orb_decl')
+       call clm_drv(step_count, rstwr, nlend, rdate)
+       !call t_stopf ('clm_run')
 
        ! Create l2x_l export state - add river runoff input to l2x_l if appropriate
 
@@ -532,12 +531,13 @@ contains
 
        ! Advance clm time step
 
-       call t_startf ('lc_clm2_adv_timestep')
+       !call t_startf ('lc_clm2_adv_timestep')
        call advance_timestep()
-       call t_stopf ('lc_clm2_adv_timestep')
-
+       !call t_stopf ('lc_clm2_adv_timestep')
+       if (step_count == 24+1) dosend = .true.
     end do
-
+    stoptime = mpi_wtime()
+    print *, "TIME FOR CLM DRIVER(seconds):", stoptime-starttime 
     ! Check that internal clock is in sync with master clock
 
     call get_curr_date( yr, mon, day, tod, offset=-dtime )

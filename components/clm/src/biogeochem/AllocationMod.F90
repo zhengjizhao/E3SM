@@ -932,15 +932,15 @@ contains
 
       ! now use the p2c routine to get the column-averaged plant_ndemand
       call p2c(bounds, num_soilc, filter_soilc, &
-           plant_ndemand, &
-           col_plant_ndemand)
+           plant_ndemand(bounds%begp:bounds%endp), &
+           col_plant_ndemand(bounds%begc:bounds%endc))
 
       !!! add phosphorus
       call p2c(bounds, num_soilc, filter_soilc, &
-           plant_pdemand, &
-           col_plant_pdemand)
-
-      !!! Starting resolving N limitation
+           plant_pdemand(bounds%begp:bounds%endp), &
+           col_plant_pdemand(bounds%begc:bounds%endc))
+      
+   !!! Starting resolving N limitation
       !! new subroutines to calculate nuptake_prof & puptake_prof
       if (nu_com .eq. 'RD') then ! 'RD' : relative demand approach
          call calc_nuptake_prof(bounds, num_soilc, filter_soilc, cnstate_vars, nuptake_prof)
@@ -3807,11 +3807,12 @@ contains
           temp_sminp_to_plant(bounds%begc:bounds%endc) = sminp_to_plant(bounds%begc:bounds%endc)
 
           call p2c(bounds,num_soilc,filter_soilc, &
-                sminn_to_npool, &
-                sminn_to_plant)
+                sminn_to_npool(bounds%begp:bounds%endp), &
+                sminn_to_plant(bounds%begc:bounds%endc))
+         
           call p2c(bounds,num_soilc,filter_soilc,       &
-              sminp_to_ppool, &
-              sminp_to_plant)
+              sminp_to_ppool(bounds%begp:bounds%endp), &
+              sminp_to_plant(bounds%begc:bounds%endc))
 
           do j = 1, nlevdecomp
                do fc=1,num_soilc
@@ -3835,8 +3836,8 @@ contains
         if( cnallocate_carbonnitrogen_only() )then
 
           call p2c(bounds,num_soilc,filter_soilc, &
-                  sminp_to_ppool, &
-                  sminp_to_plant)
+                  sminp_to_ppool(bounds%begp:bounds%endp), &
+                  sminp_to_plant(bounds%begc:bounds%endc))
 
           call calc_puptake_prof(bounds, num_soilc, filter_soilc, &
                   cnstate_vars, puptake_prof)
@@ -3861,12 +3862,12 @@ contains
           temp_sminp_to_plant(bounds%begc:bounds%endc) = sminp_to_plant(bounds%begc:bounds%endc)
 
             call p2c(bounds,num_soilc,filter_soilc, &
-                sminn_to_npool, &
-                sminn_to_plant)
+                sminn_to_npool(bounds%begp:bounds%endp), &
+                sminn_to_plant(bounds%begc:bounds%endc))
 
             call p2c(bounds,num_soilc,filter_soilc, &
-                sminp_to_ppool, &
-                sminp_to_plant)
+                sminp_to_ppool(bounds%begp:bounds%endp), &
+                sminp_to_plant(bounds%begc:bounds%endc))
 
 
             do j = 1, nlevdecomp
@@ -3897,11 +3898,10 @@ contains
           temp_sminp_to_plant(bounds%begc:bounds%endc) = sminp_to_plant(bounds%begc:bounds%endc)
 
             call p2c(bounds,num_soilc,filter_soilc, &
-                sminp_to_ppool, &
-                sminp_to_plant)
-
-
-            do j = 1, nlevdecomp
+                sminp_to_ppool(bounds%begp:bounds%endp), &
+                sminp_to_plant(bounds%begc:bounds%endc))
+            
+           do j = 1, nlevdecomp
                do fc=1,num_soilc
                   c = filter_soilc(fc)
 

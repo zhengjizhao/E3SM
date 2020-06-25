@@ -86,7 +86,8 @@ contains
       ! pft-level canopy water averaged to column
 
       call p2c(bounds, num_nolakec, filter_nolakec, &
-            h2ocan_patch, h2ocan_col)
+            h2ocan_patch(bounds%begp:bounds%endp), &
+            h2ocan_col(bounds%begc:bounds%endc))
       
       if (use_var_soil_thick) then
          do f = 1, num_hydrologyc
@@ -764,7 +765,8 @@ contains
       ! pft-level canopy water averaged to column
 
       call p2c(bounds, num_nolakec, filter_nolakec, &
-            h2ocan_patch, h2ocan_col)
+            h2ocan_patch(bounds%begp:bounds%endp), &
+            h2ocan_col(bounds%begc:bounds%endc))
 
       wa_local_col(bounds%begc:bounds%endc) = wa(bounds%begc:bounds%endc)
 
@@ -804,25 +806,32 @@ contains
          enddo
       end do
 
-      call c2g(bounds, begwb_col,  begwb_grc, &
+      call c2g(bounds, begwb_col(bounds%begc:bounds%endc), &
+           begwb_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, wa_local_col, beg_wa_grc, &
+      call c2g(bounds, wa_local_col(bounds%begc:bounds%endc), &
+           beg_wa_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2ocan_col, beg_h2ocan_grc, &
+      call c2g(bounds, h2ocan_col(bounds%begc:bounds%endc), &
+           beg_h2ocan_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osno, beg_h2osno_grc, &
+      call c2g(bounds, h2osno(bounds%begc:bounds%endc), &
+           beg_h2osno_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osfc , beg_h2osfc_grc, &
+      call c2g(bounds, h2osfc(bounds%begc:bounds%endc), &
+           beg_h2osfc_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osoi_liq_depth_intg, beg_h2osoi_liq_grc , &
+      call c2g(bounds, h2osoi_liq_depth_intg(bounds%begc:bounds%endc), &
+           beg_h2osoi_liq_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osoi_ice_depth_intg , beg_h2osoi_ice_grc , &
+      call c2g(bounds, h2osoi_ice_depth_intg(bounds%begc:bounds%endc), &
+           beg_h2osoi_ice_grc(bounds%begg:bounds%endg), &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
     end associate
@@ -1014,37 +1023,40 @@ contains
 
       end do
 
-      call c2g(bounds, endwb_col             , &
-           endwb_grc                         , &
+      call c2g(bounds, endwb_col(bounds%begc:bounds%endc)             , &
+           endwb_grc(bounds%begg:bounds%endg)                         , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, wa_local_col          , &
-           end_wa_grc                        , &
+      call c2g(bounds, wa_local_col(bounds%begc:bounds%endc)          , &
+           end_wa_grc(bounds%begg:bounds%endg)                        , &
+           c2l_scale_type= 1, l2g_scale_type=0 )
+           
+
+      call c2g(bounds, h2ocan_col(bounds%begc:bounds%endc)            , &
+           end_h2ocan_grc(bounds%begg:bounds%endg)                    , &
+           c2l_scale_type= 1, l2g_scale_type=0 )
+           
+
+      call c2g(bounds, h2osno_col(bounds%begc:bounds%endc)            , &
+           end_h2osno_grc(bounds%begg:bounds%endg)                    , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2ocan_col            , &
-           end_h2ocan_grc                    , &
+      call c2g(bounds, h2osfc_col(bounds%begc:bounds%endc)            , &
+           end_h2osfc_grc(bounds%begg:bounds%endg)                    , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osno_col            , &
-           end_h2osno_grc                    , &
+      call c2g(bounds, h2osoi_liq_depth_intg(bounds%begc:bounds%endc) , &
+           end_h2osoi_liq_grc(bounds%begg:bounds%endg)                , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osfc_col            , &
-           end_h2osfc_grc                    , &
+      call c2g(bounds, h2osoi_ice_depth_intg(bounds%begc:bounds%endc) , &
+           end_h2osoi_ice_grc(bounds%begg:bounds%endg)                , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osoi_liq_depth_intg , &
-           end_h2osoi_liq_grc                , &
+      call c2g(bounds, errh2o(bounds%begc:bounds%endc)                , &
+           errh2o_grc(bounds%begg:bounds%endg)                        , &
            c2l_scale_type= 1, l2g_scale_type=0 )
 
-      call c2g(bounds, h2osoi_ice_depth_intg , &
-           end_h2osoi_ice_grc                , &
-           c2l_scale_type= 1, l2g_scale_type=0 )
-
-      call c2g(bounds, errh2o                , &
-           errh2o_grc                        , &
-           c2l_scale_type= 1, l2g_scale_type=0 )
 
     end associate
 

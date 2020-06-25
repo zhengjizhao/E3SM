@@ -480,7 +480,7 @@ flags should be captured within MPAS CMake files.
     <base> -r8 </base>
   </FC_AUTO_R8>
   <FFLAGS>
-    <base>  -i4 -gopt  -time -Mstack_arrays  -Mextend -byteswapio -Mflushz -Kieee -Mallocatable=03 </base>
+	  <base>  -i4 -g -time -Mextend -byteswapio -Mflushz -Kieee -Mallocatable=03</base>
     <append compile_threaded="FALSE"> </append>
     <append compile_threaded="TRUE"> -mp </append>
     <append DEBUG="TRUE"> -O0 -g -Ktrap=fp -Mbounds -Kieee </append>
@@ -490,6 +490,7 @@ flags should be captured within MPAS CMake files.
     <append COMP_NAME="dwav"> -Mnovect </append>
     <append COMP_NAME="dice"> -Mnovect </append>
     <append COMP_NAME="docn"> -Mnovect </append>
+    <append COMP_NAME="clm">-O0 -ta=tesla:deepcopy,cc70 -Mcuda</append>
   </FFLAGS>
   <FFLAGS_NOOPT>
     <base> -O0 </base>
@@ -507,7 +508,7 @@ flags should be captured within MPAS CMake files.
        the "contiguous" attribute is incompatible with "intent".-->
   <HAS_F2008_CONTIGUOUS>FALSE</HAS_F2008_CONTIGUOUS>
   <LDFLAGS>
-    <base> -time -Wl,--allow-multiple-definition </base>
+    <base> -time -Wl,--allow-multiple-definition -acc -Mcuda </base>
     <append compile_threaded="FALSE"> </append>
     <append compile_threaded="TRUE"> -mp </append>
   </LDFLAGS>
@@ -1006,15 +1007,20 @@ flags should be captured within MPAS CMake files.
   </SLIBS>
 </compiler>
 
+
 <compiler MACH="excl" COMPILER="pgi">
-  <HDF5_PATH>/home/7xw/Applications/pgi/hdf5-1.10.5</HDF5_PATH>
-  <NETCDF_PATH>/home/7xw/Applications/pgi/netcdf-4.x-hdf5</NETCDF_PATH>
-  <LAPACK_LIBDIR>ENV{BLASLAPACK_DIR}</LAPACK_LIBDIR>
-  <LDFLAGS>
+   <NETCDF_PATH>$ENV{NETCDF_PATH}</NETCDF_PATH>
+   <HDF5_PATH>$ENV{HDF5_PATH}</HDF5_PATH>
+   <LAPACK_LIBDIR>$ENV{BLASLAPACK_DIR}</LAPACK_LIBDIR>   
+   <LDFLAGS>
     <append MODEL="driver">-L$(NETCDF_PATH)/lib -lnetcdff -lnetcdf </append>
     <append MODEL="driver">-L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -lhdf5hl_fortran -lhdf5_fortran </append>
     <append MODEL="driver">-L$(LAPACK_LIBDIR) -llapack -lblas</append>
+    <append MODEL="driver">-acc -Mcuda -ta=tesla:deepcopy -Minfo=accel</append>
   </LDFLAGS>
+  <FFLAGS>
+	  <append MODEL="clm"></append>
+  </FFLAGS>
   <SFC>$ENV{FC_ROOT}/bin/pgfortran</SFC>
   <SCC>$ENV{CC_ROOT}/bin/pgcc</SCC>
   <SCXX>$ENV{CC_ROOT}/bin/pgc++</SCXX>
@@ -1022,7 +1028,6 @@ flags should be captured within MPAS CMake files.
   <MPICXX>$ENV{MPI_ROOT}/bin/mpicxx</MPICXX>
   <MPIFC>$ENV{MPI_ROOT}/bin/mpifort</MPIFC>
 </compiler>
-
 
 <compiler MACH="dgx" COMPILER="gnu">
   <MPI_PATH MPILIB="openmpi">/usr</MPI_PATH>

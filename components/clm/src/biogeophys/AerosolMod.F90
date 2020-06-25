@@ -47,8 +47,6 @@ contains
     integer               , intent(in)    :: filter_on(:)   ! column filter for filter-ON points
     integer               , intent(in)    :: num_off        ! number of column non filter-OFF points
     integer               , intent(in)    :: filter_off(:)  ! column filter for filter-OFF points
-    !type(waterflux_type)  , intent(in)    :: waterflux_vars
-    !type(waterstate_type) , intent(inout) :: waterstate_vars
     type(aerosol_type)    , intent(inout) :: aerosol_vars
     real(r8), intent(in)                  :: dtime           ! land model time step (sec)
 

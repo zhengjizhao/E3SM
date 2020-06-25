@@ -241,12 +241,12 @@ contains
     !
     ! !ARGUMENTS:
     type(bounds_type) , intent(in) :: bounds
-    real(r8)          , intent(in) :: icemask_grc( : ) ! ice sheet grid coverage mask [gridcell]
+    real(r8)          , intent(in) :: icemask_grc(bounds%begg: ) ! ice sheet grid coverage mask [gridcell]
     !------------------------------------------------------------------------
 
     call setFiltersOneGroup(bounds, &
          filter, include_inactive = .false., &
-         icemask_grc = icemask_grc)
+         icemask_grc = icemask_grc(bounds%begg:bounds%endg) )
 
     ! At least as of June, 2013, the 'inactive_and_active' version of the filters is
     ! static in time. Thus, we could have some logic saying whether we're in
@@ -262,7 +262,7 @@ contains
 
     call setFiltersOneGroup(bounds, &
          filter_inactive_and_active, include_inactive = .true., &
-         icemask_grc = icemask_grc)
+         icemask_grc = icemask_grc(bounds%begg:bounds%endg))
 
   end subroutine setFilters
 
@@ -288,7 +288,7 @@ contains
     type(bounds_type) , intent(in)    :: bounds
     type(clumpfilter) , intent(inout) :: this_filter(:)              ! the group of filters to set
     logical           , intent(in)    :: include_inactive            ! whether inactive points should be included in the filters
-    real(r8)          , intent(in)    :: icemask_grc(: ) ! ice sheet grid coverage mask [gridcell]
+    real(r8)          , intent(in)    :: icemask_grc(bounds%begg: ) ! ice sheet grid coverage mask [gridcell]
     !
     ! LOCAL VARAIBLES:
     integer :: nc          ! clump index

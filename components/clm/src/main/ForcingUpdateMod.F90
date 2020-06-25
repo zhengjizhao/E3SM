@@ -233,6 +233,7 @@ contains
 
     frac = (atm2lnd_vars%forc_t_not_downscaled_grc(g) - SHR_CONST_TKFRZ)*0.5_R8       ! ramp near freezing
     frac = min(1.0_R8,max(0.0_R8,frac))           ! bound in [0,1]
+    
     !Don't interpolate rainfall data
     forc_rainc = 0.1_R8 * frac * max((((atm2lnd_vars%atm_input(5,g,1,tindex(g,5,2))*atm2lnd_vars%scale_factors(5)+ &
                                   atm2lnd_vars%add_offsets(5)))*atm2lnd_vars%var_mult(5,g,mon) + &
@@ -247,6 +248,23 @@ contains
     !!!!
     forc_snowl = 0.9_R8 * (1.0_R8 - frac) * max((((atm2lnd_vars%atm_input(5,g,1,tindex(g,5,2))*atm2lnd_vars%scale_factors(5)+ &
             atm2lnd_vars%add_offsets(5))) * atm2lnd_vars%var_mult(5,g,mon) + atm2lnd_vars%var_offset(5,g,mon)), 0.0_r8)
+   
+   
+    !Wind
+    atm2lnd_vars%forc_u_grc(g) = (atm2lnd_vars%atm_input(6,g,1,tindex(g,6,1))*atm2lnd_vars%scale_factors(6)+ &
+                                 atm2lnd_vars%add_offsets(6))*wt1(6) + (atm2lnd_vars%atm_input(6,g,1,tindex(g,6,2))* &
+                                 atm2lnd_vars%scale_factors(6)+atm2lnd_vars%add_offsets(6))*wt2(6)
+    if (atm2lnd_vars%metsource == 5) then 
+      atm2lnd_vars%forc_v_grc(g) = (atm2lnd_vars%atm_input(14,g,1,tindex(g,14,1))*atm2lnd_vars%scale_factors(14)+ &
+                                 atm2lnd_vars%add_offsets(14))*wt1(14) + (atm2lnd_vars%atm_input(14,g,1,tindex(g,14,2))* &
+                                 atm2lnd_vars%scale_factors(14)+atm2lnd_vars%add_offsets(14))*wt2(14)
+    else
+        atm2lnd_vars%forc_v_grc(g) = 0.0_R8 
+    end if
+    atm2lnd_vars%forc_hgt_grc(g) = 30.0_R8 !(atm2lnd_vars%atm_input(8,g,1,tindex(1))*wt1 + &
+                                        !atm2lnd_vars%atm_input(8,g,1,tindex(2))*wt2)    ! zgcmxy  Atm state, default=30m
+
+   
     !!!!
     !------------------------------------Fire data -------------------------------------------------------
     !get weights for interpolation
@@ -299,6 +317,8 @@ contains
        top_as%ubot(topo)    = atm2lnd_vars%forc_u_grc(g)                     ! forc_uxy  Atm state m/s
        top_as%vbot(topo)    = atm2lnd_vars%forc_v_grc(g)                     ! forc_vxy  Atm state m/s
        top_as%zbot(topo)    = atm2lnd_vars%forc_hgt_grc(g)                   ! zgcmxy    Atm state m
+
+
        ! assign the state forcing fields derived from other inputs
        ! Horizontal windspeed (m/s)
        top_as%windbot(topo) = sqrt(top_as%ubot(topo)**2 + top_as%vbot(topo)**2)

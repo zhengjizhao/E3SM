@@ -1587,8 +1587,8 @@ contains
          end do
 
          call p2c (bounds, nlevgrnd, &
-              rootfraction, &
-              rootfr_col, &
+              rootfraction(bounds%begp:bounds%endp, :), &
+              rootfr_col(bounds%begc:bounds%endc, :), &
               0)
 
          do j=1, nlevsoi
@@ -1603,8 +1603,8 @@ contains
       ! Needed to use non-filter form above so that spval would be treated properly.
 
       call p2c (bounds, num_soilc, filter_soilc, &
-           grnd_ch4_cond_patch, &
-           grnd_ch4_cond_col)
+           grnd_ch4_cond_patch(bounds%begp:bounds%endp), &
+           grnd_ch4_cond_col(bounds%begc:bounds%endc))
 
       ! Set the gridcell atmospheric CH4 and O2 concentrations
       do fc = 1, num_soilc
@@ -1628,7 +1628,7 @@ contains
       !ITERATION : do while (sat <= 1 ) ! 0 == unsaturated; 1 = saturated
 
         ! Get index of water table
-          call get_jwt (bounds, num_soilc, filter_soilc, jwt, &
+          call get_jwt (bounds, num_soilc, filter_soilc, jwt(begc:endc), &
                soilstate_vars )
 
           do fc = 1, num_soilc
@@ -1659,33 +1659,33 @@ contains
          call ch4_prod (bounds, &
               num_soilc, filter_soilc, &
               num_soilp, filter_soilp, &
-              jwt, sat, lake, &
+              jwt(begc:endc), sat, lake, &
               soilstate_vars, ch4_vars, dtime)
 
          ! calculate CH4 oxidation in each soil layer
          call ch4_oxid (bounds, &
               num_soilc, filter_soilc, &
-              jwt, sat, lake, &
+              jwt(begc:endc), sat, lake, &
               soilstate_vars, ch4_vars, dtime)
 
          ! calculate CH4 aerenchyma losses in each soil layer
          call ch4_aere (bounds, &
               num_soilc, filter_soilc, &
               num_soilp, filter_soilp, &
-              jwt, sat, lake, &
+              jwt(begc:endc), sat, lake, &
               canopystate_vars, soilstate_vars, energyflux_vars, ch4_vars,dtime)
 
          ! calculate CH4 ebullition losses in each soil layer
          call ch4_ebul (bounds, &
               num_soilc, filter_soilc, &
-              jwt, sat, lake, &
+              jwt(begc:endc), sat, lake, &
               atm2lnd_vars, lakestate_vars, soilstate_vars, ch4_vars, dtime)
 
          ! Solve CH4 reaction/diffusion equation
          ! Competition for oxygen will occur here.
          call ch4_tran (bounds, &
               num_soilc, filter_soilc, &
-              jwt, dtime_ch4, sat, lake, &
+              jwt(begc:endc), dtime_ch4, sat, lake, &
               soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
 
@@ -1699,33 +1699,33 @@ contains
        call ch4_prod (bounds, &
             num_soilc, filter_soilc, &
             num_soilp, filter_soilp, &
-            jwt, sat, lake, &
+            jwt(begc:endc), sat, lake, &
             soilstate_vars, ch4_vars, dtime)
 
        ! calculate CH4 oxidation in each soil layer
        call ch4_oxid (bounds, &
             num_soilc, filter_soilc, &
-            jwt, sat, lake, &
+            jwt(begc:endc), sat, lake, &
             soilstate_vars, ch4_vars, dtime)
 
        ! calculate CH4 aerenchyma losses in each soil layer
        call ch4_aere (bounds, &
             num_soilc, filter_soilc, &
             num_soilp, filter_soilp, &
-            jwt, sat, lake, &
+            jwt(begc:endc), sat, lake, &
             canopystate_vars, soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
        ! calculate CH4 ebullition losses in each soil layer
        call ch4_ebul (bounds, &
             num_soilc, filter_soilc, &
-            jwt, sat, lake, &
+            jwt(begc:endc), sat, lake, &
             atm2lnd_vars, lakestate_vars, soilstate_vars, ch4_vars, dtime)
 
        ! Solve CH4 reaction/diffusion equation
        ! Competition for oxygen will occur here.
        call ch4_tran (bounds, &
             num_soilc, filter_soilc, &
-            jwt, dtime_ch4, sat, lake, &
+            jwt(begc:endc), dtime_ch4, sat, lake, &
             soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
 
@@ -1746,32 +1746,32 @@ contains
          ! calculate CH4 production in each lake layer
          call ch4_prod (bounds, &
               num_lakec, filter_lakec, &
-              0, dummyfilter, jwt, sat, lake, &
+              0, dummyfilter, jwt(begc:endc), sat, lake, &
               soilstate_vars, ch4_vars, dtime)
 
          ! calculate CH4 oxidation in each lake layer
          call ch4_oxid (bounds, &
               num_lakec, filter_lakec, &
-              jwt, sat, lake, soilstate_vars, ch4_vars, dtime)
+              jwt(begc:endc), sat, lake, soilstate_vars, ch4_vars, dtime)
 
          ! calculate CH4 aerenchyma losses in each lake layer
          ! The p filter will not be used here; the relevant column vars will just be set to 0.
          call ch4_aere (bounds, &
               num_lakec, filter_lakec, &
-              0, dummyfilter, jwt, sat, lake, &
+              0, dummyfilter, jwt(begc:endc), sat, lake, &
               canopystate_vars, soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
          ! calculate CH4 ebullition losses in each lake layer
          call ch4_ebul (bounds, &
               num_lakec, filter_lakec, &
-              jwt, sat, lake, &
+              jwt(begc:endc), sat, lake, &
               atm2lnd_vars, lakestate_vars, soilstate_vars,ch4_vars, dtime)
 
          ! Solve CH4 reaction/diffusion equation
          ! Competition for oxygen will occur here.
          call ch4_tran (bounds, &
               num_lakec, filter_lakec, &
-              jwt, dtime_ch4, sat, lake, &
+              jwt(begc:endc), dtime_ch4, sat, lake, &
               soilstate_vars, energyflux_vars, ch4_vars, dtime)
 
       end if
@@ -1922,16 +1922,16 @@ contains
 
       ! Now average up to gridcell for fluxes
       call c2g( bounds, &
-           ch4_oxid_tot, ch4co2f,   &
+           ch4_oxid_tot(begc:endc), ch4co2f(begg:endg),        &
            c2l_scale_type= 0, l2g_scale_type=0 )
 
       call c2g( bounds, &
-           ch4_prod_tot, ch4prodg,  &
-            c2l_scale_type= 0, l2g_scale_type=0)
+           ch4_prod_tot(begc:endc), ch4prodg(begg:endg),       &
+           c2l_scale_type= 0, l2g_scale_type=0 )
 
       call c2g( bounds, &
-           nem_col, nem_grc,   &
-          c2l_scale_type= 0, l2g_scale_type=0 )
+           nem_col(begc:endc), nem_grc(begg:endg),               &
+           c2l_scale_type= 0, l2g_scale_type=0 )
 
     end associate
 
@@ -3436,13 +3436,13 @@ contains
             enddo ! j; nlevsoi
 
             call Tridiagonal(bounds, 0, nlevsoi, &
-                 jtop, &
+                 jtop(bounds%begc:bounds%endc), &
                  num_methc, filter_methc, &
-                 at, &
-                 bt, &
-                 ct, &
-                 rt, &
-                 conc_ch4_rel)
+                 at(bounds%begc:bounds%endc, :), &
+                 bt(bounds%begc:bounds%endc, :), &
+                 ct(bounds%begc:bounds%endc, :), &
+                 rt(bounds%begc:bounds%endc, :), &
+                 conc_ch4_rel(bounds%begc:bounds%endc, 0:nlevsoi))
 
             ! Calculate net ch4 flux to the atmosphere from the surface (+ to atm)
             do fc = 1, num_methc
@@ -3536,13 +3536,13 @@ contains
                enddo ! fc; column
             enddo ! j; nlevsoi
 
-            call Tridiagonal(bounds, 0, nlevsoi, jtop, &
+            call Tridiagonal(bounds, 0, nlevsoi, jtop(bounds%begc:bounds%endc), &
                  num_methc, filter_methc, &
-                 at, &
-                 bt, &
-                 ct, &
-                 rt, &
-                 conc_o2_rel)
+                 at(bounds%begc:bounds%endc, :), &
+                 bt(bounds%begc:bounds%endc, :), &
+                 ct(bounds%begc:bounds%endc, :), &
+                 rt(bounds%begc:bounds%endc, :), &
+                 conc_o2_rel(bounds%begc:bounds%endc,0:nlevsoi))
 
             ! Ensure that concentrations stay above 0
             do j = 1,nlevsoi

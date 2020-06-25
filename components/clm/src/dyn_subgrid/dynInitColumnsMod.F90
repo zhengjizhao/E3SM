@@ -64,7 +64,7 @@ contains
     do c = bounds%begc, bounds%endc
        ! If this column is newly-active, then we need to initialize it using the routines in this module
        if (col_pp%active(c) .and. .not. cactive_prior(c)) then
-          c_template = initial_template_col_dispatcher(bounds, c, cactive_prior)
+          c_template = initial_template_col_dispatcher(bounds, c, cactive_prior(bounds%begc:bounds%endc))
           if (c_template /= ispval) then
              call copy_state(c, c_template, soilhydrology_vars)
           else
@@ -107,7 +107,7 @@ contains
     case(istsoil)
        c_template = initial_template_col_soil(c_new)
     case(istcrop)
-       c_template = initial_template_col_crop(bounds, c_new, cactive_prior )
+       c_template = initial_template_col_crop(bounds, c_new,cactive_prior(bounds%begc:bounds%endc) )
     case(istice)
        print *, ' ERROR: Ability to initialize a newly-active glacier column not yet implemented'
     case(istice_mec)
@@ -147,9 +147,10 @@ contains
     !-----------------------------------------------------------------------
 
     if (col_pp%wtgcell(c_new) > 0._r8) then
-       print *, ' ERROR: Expectation is that the only vegetated columns that'
-            !#py & can newly become active are ones with 0 weight on the grid cell'
-       !#py !#py call endrun(decomp_index=c_new, clmlevel=namec, msg=errMsg(__FILE__, __LINE__))
+
+       print *, ' ERROR: Expectation is that the only vegetated columns that',c_new
+       print *, ' can newly become active are ones with 0 weight on the grid cell'
+       stop 
     end if
 
     c_template = ispval
@@ -181,9 +182,9 @@ contains
     ! First try to find an active column on the vegetated landunit; if there is none, then
     ! find the first active column on the crop landunit; if there is none, then
     ! template_col will be ispval
-    c_template = initial_template_col(bounds, c_new, istsoil, cactive_prior )
+    c_template = initial_template_col(bounds, c_new, istsoil, cactive_prior(bounds%begc:bounds%endc) )
     if (c_template == ispval) then
-       c_template = initial_template_col(bounds, c_new, istcrop, cactive_prior )
+       c_template = initial_template_col(bounds, c_new, istcrop, cactive_prior(bounds%begc:bounds%endc) )
     end if
 
   end function initial_template_col_crop

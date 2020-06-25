@@ -4995,6 +4995,7 @@ if echo $FC | grep mpi >/dev/null 2>&1; then
    FC="$(cut -d' ' -f1 <<<"$MPIFC")"
 fi
 echo "Actual compiler is: $FC"
+
 if echo $FC | grep xlf >/dev/null 2>&1; then
    echo "Fortran Compiler is XLF"
    CPRDEF="XLF"
@@ -5026,14 +5027,14 @@ elif echo $FC | grep pgf >/dev/null 2>&1; then
       ENDIAN="-byteswapio"
    fi
    if test -z "$OPT"; then
-      OPT="-O2"
+      OPT=""
    fi
    if test -z "$DEBUG"; then
       DEBUG="-g"
    fi
 elif echo $FC | grep ftn >/dev/null 2>&1; then
  if echo $ac_fc_version_output | grep -i Portland >/dev/null 2>&1; then
-   echo "Fortran Compiler is Portland , Cray"
+   echo "Fortran Compiler is Portland Group, Cray"
    CPRDEF="PGI"
    SYSDEF="CNLINUX"
    if test -z "$REAL8"; then

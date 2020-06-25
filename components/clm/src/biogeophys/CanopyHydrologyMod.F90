@@ -521,24 +521,25 @@ contains
             canopystate_vars)
 
        ! Update column level state variables for snow.
-
+       
        call p2c(bounds, num_nolakec, filter_nolakec, &
-            qflx_snow_grnd_patch, &
-            qflx_snow_grnd_col)
+            qflx_snow_grnd_patch(bounds%begp:bounds%endp), &
+            qflx_snow_grnd_col(bounds%begc:bounds%endc))
+                        
+       ! Update column level irrigation supple for balance check       
+       call p2c(bounds, num_nolakec, filter_nolakec, &      
+            qflx_over_supply(bounds%begp:bounds%endp), &
+            qflx_over_supply_col(bounds%begc:bounds%endc))
 
-		! Update column level irrigation supple for balance check
-       call p2c(bounds, num_nolakec, filter_nolakec, &
-            qflx_over_supply    , &
-            qflx_over_supply_col)
+       call p2c(bounds, num_nolakec, filter_nolakec, &      
+            qflx_surf_irrig(bounds%begp:bounds%endp), &
+            qflx_surf_irrig_col(bounds%begc:bounds%endc))
+            
+       call p2c(bounds, num_nolakec, filter_nolakec, &      
+            qflx_grnd_irrig(bounds%begp:bounds%endp), &
+            qflx_grnd_irrig_col(bounds%begc:bounds%endc))
 
-       call p2c(bounds, num_nolakec, filter_nolakec, &
-            qflx_surf_irrig    , &
-            qflx_surf_irrig_col)
-
-       call p2c(bounds, num_nolakec, filter_nolakec, &
-            qflx_grnd_irrig    , &
-            qflx_grnd_irrig_col)
-
+       
        ! apply gridcell flood water flux to non-lake columns
        !$acc loop seq
        do f = 1, num_nolakec

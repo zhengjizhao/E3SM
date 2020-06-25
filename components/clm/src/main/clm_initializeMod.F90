@@ -1086,6 +1086,21 @@ contains
    integer :: coli,colf, pfti, pftf
 
    nc = bounds%clump_index
+   print *, " "
+   print *, "++++++++++ Clump ",nc," +++++++++++"
+
+   do l = bounds%begl, bounds%endl
+     print *, "=============================="
+     print *,"g   " , lun_pp%gridcell(l)
+     print *,"c   " , lun_pp%ncolumns(l)
+     print *,"p   " , lun_pp%npfts(l)
+     print *,"i   " , lun_pp%itype(l)
+     print *,"coli" , lun_pp%coli(l)
+     print *,"colf" , lun_pp%colf(l)
+     print *,"pfti" , lun_pp%pfti(l)
+     print *,"pftf" , lun_pp%pftf(l)
+     print *, "=============================="
+   end do
 
  end subroutine print_grid
 

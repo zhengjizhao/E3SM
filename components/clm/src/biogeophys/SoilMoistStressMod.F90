@@ -93,7 +93,7 @@ contains
     integer           , intent(in)    :: numf                            ! filter dimension
     integer           , intent(in)    :: filter(:)                       ! filter
     real(r8)          , intent(in)    :: watsat( bounds%begc:, 1: )     ! soil porosity
-    real(r8)          , intent(in)    :: h2osoi_ice( bounds%begc:, -4: ) ! ice water content, kg H2o/m2
+    real(r8)          , intent(in)    :: h2osoi_ice( bounds%begc:,1 : ) ! ice water content, kg H2o/m2
     real(r8)          , intent(in)    :: denice                          ! ice density, kg/m3
     real(r8)          , intent(inout) :: eff_por( bounds%begc: ,1: )     ! effective porosity
     !
@@ -191,9 +191,9 @@ contains
     integer           , intent(in)    :: numf                               ! filter dimension
     integer           , intent(in)    :: filter(:)                          ! filter
     real(r8)          , intent(in)    :: eff_porosity(bounds%begc: , lbj: ) ! effective soil porosity
-    real(r8)          , intent(in)    :: h2osoi_liq(bounds%begc: , -4: )   ! liquid water content [kg H2o/m2]
+    real(r8)          , intent(in)    :: h2osoi_liq(bounds%begc: , lbj: )   ! liquid water content [kg H2o/m2]
     real(r8)          , intent(in)    :: denh2o                             ! water density [kg/m3]
-    real(r8)          , intent(inout) :: vol_liq(bounds%begc: , -4: )      ! volumetric liquid water content
+    real(r8)          , intent(inout) :: vol_liq(bounds%begc: , lbj: )      ! volumetric liquid water content
     !
     ! !LOCAL VARIABLES:
     integer :: c, j, fc  ! indices
@@ -298,7 +298,7 @@ contains
 
       !normalize the root fraction for each pft
       call array_normalization(bounds%begp, bounds%endp, 1, ubj, &
-           fn, filterp, rootfr_unf)
+           fn, filterp, rootfr_unf(bounds%begp:bounds%endp, 1:ubj))
 
     end associate
 
@@ -463,7 +463,7 @@ contains
          filterp = filterp,                 &
          canopystate_vars=canopystate_vars, &
          soilstate_vars=soilstate_vars,     &
-         rootfr_unf=rootfr_unf)
+         rootfr_unf=rootfr_unf(bounds%begp:bounds%endp,1:nlevgrnd))
 
     !suppose h2osoi_liq, eff_porosity are already computed somewhere else
 
@@ -477,7 +477,7 @@ contains
             filterp = filterp,                          &
             energyflux_vars=energyflux_vars,            &
             soilstate_vars=soilstate_vars,              &
-            rootfr_unf=rootfr_unf)
+            rootfr_unf=rootfr_unf(bounds%begp:bounds%endp,1:nlevgrnd))
 
     case default
     end select

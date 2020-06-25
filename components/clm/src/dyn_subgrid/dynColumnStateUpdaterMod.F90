@@ -251,14 +251,17 @@ contains
     ! !LOCAL VARIABLES:
     integer :: c
     !-----------------------------------------------------------------------
-
+     associate( & 
+              active_col => col_pp%active ,&
+              natveg_template_col => column_state_updater%natveg_template_col &
+                )
     do c = bounds%begc, bounds%endc
        column_state_updater%cwtgcell_old(c) = col_pp%wtgcell(c)
     end do
 
-    call template_col_from_natveg_array(bounds, col_pp%active, &
-         column_state_updater%natveg_template_col)
-
+    call template_col_from_natveg_array(bounds, active_col(bounds%begc:bounds%endc), &
+            natveg_template_col(bounds%begc:bounds%endc))
+    end associate 
   end subroutine column_state_set_old_weights_acc
 
   !-----------------------------------------------------------------------

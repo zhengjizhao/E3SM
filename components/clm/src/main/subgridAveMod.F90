@@ -355,7 +355,8 @@ contains
     SHR_ASSERT_ALL((ubound(parr) == (/bounds%endp/)), errMsg(__FILE__, __LINE__))
     SHR_ASSERT_ALL((ubound(larr) == (/bounds%endl/)), errMsg(__FILE__, __LINE__))
 
-    call create_scale_c2l(bounds,c2l_scale_type,scale_c2l)
+    call create_scale_c2l(bounds,c2l_scale_type, & 
+            scale_c2l(bounds%begc:bounds%endc))
 
     if (p2c_scale_type == 'unity') then
        do p = bounds%begp,bounds%endp
@@ -418,7 +419,8 @@ contains
     real(r8) :: scale_c2l(bounds%begc:bounds%endc)     ! scale factor for column->landunit mapping
     !------------------------------------------------------------------------
 
-    call create_scale_c2l(bounds,c2l_scale_type,scale_c2l)
+    call create_scale_c2l(bounds,c2l_scale_type,&
+            scale_c2l(bounds%begc:bounds%endc))
 
     if (p2c_scale_type == 'unity') then
        do p = bounds%begp,bounds%endp
@@ -486,9 +488,10 @@ contains
     ! Enforce expected array sizes
 
     call build_scale_l2g(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-    call create_scale_c2l(bounds,c2l_scale_type,scale_c2l)
+    call create_scale_c2l(bounds,c2l_scale_type,&
+            scale_c2l(bounds%begc:bounds%endc))
 
     if (p2c_scale_type == 'unity') then
        do p = bounds%begp,bounds%endp
@@ -555,7 +558,7 @@ contains
     ! Enforce expected array sizes
 
     call build_scale_l2g_gpu(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
     if (c2l_scale_type == unity) then
        do c = bounds%begc,bounds%endc
@@ -667,9 +670,10 @@ contains
     SHR_ASSERT_ALL((ubound(garr) == (/bounds%endg, num2d/)), errMsg(__FILE__, __LINE__))
 
     call build_scale_l2g(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-    call create_scale_c2l(bounds,c2l_scale_type, scale_c2l)
+    call create_scale_c2l(bounds,c2l_scale_type,&
+                scale_c2l(bounds%begc:bounds%endc))
 
     if (p2c_scale_type == 'unity') then
        do p = bounds%begp,bounds%endp
@@ -742,7 +746,7 @@ contains
     ! Enforce expected array sizes
 
     call build_scale_l2g_gpu(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
     if (c2l_scale_type == unity) then
        do c = bounds%begc,bounds%endc
@@ -852,7 +856,8 @@ contains
     SHR_ASSERT_ALL((ubound(carr) == (/bounds%endc/)), errMsg(__FILE__, __LINE__))
     SHR_ASSERT_ALL((ubound(larr) == (/bounds%endl/)), errMsg(__FILE__, __LINE__))
 
-    call create_scale_c2l(bounds, c2l_scale_type, scale_c2l)
+    call create_scale_c2l(bounds, c2l_scale_type,&
+            scale_c2l(bounds%begc:bounds%endc))
 
     larr(bounds%begl : bounds%endl) = spval
     sumwt(bounds%begl : bounds%endl) = 0._r8
@@ -903,7 +908,8 @@ contains
     real(r8) :: sumwt(bounds%begl:bounds%endl)         ! sum of weights
     !------------------------------------------------------------------------
 
-    call create_scale_c2l(bounds, c2l_scale_type, scale_c2l)
+    call create_scale_c2l(bounds, c2l_scale_type,&
+            scale_c2l(bounds%begc:bounds%endc))
 
     larr(bounds%begl : bounds%endl, :) = spval
     do j = 1,num2d
@@ -956,9 +962,10 @@ contains
     !------------------------------------------------------------------------
 
     call build_scale_l2g(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-    call create_scale_c2l(bounds,c2l_scale_type, scale_c2l)
+    call create_scale_c2l(bounds,c2l_scale_type,& 
+            scale_c2l(bounds%begc:bounds%endc))
 
     garr(bounds%begg : bounds%endg) = spval
     sumwt(bounds%begg : bounds%endg) = 0._r8
@@ -1011,9 +1018,10 @@ contains
     !------------------------------------------------------------------------
 
     call build_scale_l2g_gpu(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-    call create_scale_c2l_gpu(bounds,c2l_scale_type, scale_c2l)
+    call create_scale_c2l_gpu(bounds,c2l_scale_type, &
+            scale_c2l(bounds%begc:bounds%endc) )
 
     garr(bounds%begg : bounds%endg) = spval
     sumwt(bounds%begg : bounds%endg) = 0._r8
@@ -1067,9 +1075,10 @@ contains
     !------------------------------------------------------------------------
 
     call build_scale_l2g(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-    call create_scale_c2l(bounds, c2l_scale_type, scale_c2l)
+    call create_scale_c2l(bounds, c2l_scale_type, &
+            scale_c2l(bounds%begc:bounds%endc))
 
     garr(bounds%begg : bounds%endg,:) = spval
     do j = 1,num2d
@@ -1126,9 +1135,10 @@ contains
     !------------------------------------------------------------------------
 
     call build_scale_l2g_gpu(bounds, l2g_scale_type, &
-         scale_l2g)
+            scale_l2g(bounds%begl:bounds%endl))
 
-   call create_scale_c2l_gpu(bounds,c2l_scale_type, scale_c2l)
+   call create_scale_c2l_gpu(bounds,c2l_scale_type, &
+           scale_c2l(bounds%begc:bounds%endc))
 
     garr(bounds%begg : bounds%endg,:) = spval
     do j = 1,num2d

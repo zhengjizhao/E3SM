@@ -32,7 +32,13 @@ MODULE shr_orb_mod_elm
   real   (SHR_KIND_R8),parameter :: SHR_ORB_MVELP_MIN  =   0.0_SHR_KIND_R8 ! min value for mvelp
   real   (SHR_KIND_R8),parameter :: SHR_ORB_MVELP_MAX  = 360.0_SHR_KIND_R8 ! max value for mvelp
 
-
+  !$acc declare copyin(pi,SHR_ORB_UNDEF_REAL,SHR_ORB_UNDEF_INT, &
+  !$acc SHR_ORB_ECCEN_MIN ,&
+  !$acc SHR_ORB_ECCEN_MAX ,&
+  !$acc SHR_ORB_OBLIQ_MIN ,&
+  !$acc SHR_ORB_OBLIQ_MAX ,&
+  !$acc SHR_ORB_MVELP_MIN ,&
+  !$acc SHR_ORB_MVELP_MAX )
   !===============================================================================
 CONTAINS
   !===============================================================================
@@ -89,7 +95,6 @@ CONTAINS
 
   real (SHR_KIND_R8) pure function shr_orb_avg_cosz(jday, lat, lon, declin, dt_avg)
     !$acc routine seq
-    use shr_const_mod, only : pi => shr_const_pi
 
     implicit none
 
@@ -655,7 +660,7 @@ CONTAINS
   !===============================================================================
 
   SUBROUTINE shr_orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
-
+    !$acc routine seq
     !-------------------------------------------------------------------------------
     !
     ! Compute earth/orbit parameters using formula suggested by

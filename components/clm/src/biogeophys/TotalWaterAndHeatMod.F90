@@ -211,8 +211,8 @@ contains
     end do
 
     call p2c(bounds, num_nolakec, filter_nolakec, &
-         h2ocan_patch, &
-         h2ocan_col)
+         h2ocan_patch(bounds%begp:bounds%endp), &
+         h2ocan_col(bounds%begc:bounds%endc))
 
     !call p2c(bounds, num_nolakec, filter_nolakec, &
     !     snocan_patch(bounds%begp:bounds%endp), &
@@ -454,8 +454,8 @@ contains
     end do
 
     call p2c(bounds, &
-         parr = h2ocan_patch, &
-         carr = h2ocan_col, &
+         parr = h2ocan_patch(bounds%begp:bounds%endp), &
+         carr = h2ocan_col(bounds%begc:bounds%endc), &
          p2c_scale_type = 0)
 
     !call p2c(bounds, &

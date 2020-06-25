@@ -2434,11 +2434,14 @@ module Method_procs_acc
       ! !LOCAL VARIABLES
       integer :: fp, p
       !------------------------------------------------------------
-
+      associate( &
+        rr_patch => vegcf%rr, &
+        rr_col   => col_cf_input%rr &
+        )
       do fp = 1,num_soilp
         p = filter_soilp(fp)
         ! root respiration (RR)
-        vegcf%rr(p) = &
+        rr_patch(p) = &
         vegcf%froot_mr(p) + &
         vegcf%cpool_froot_gr(p) + &
         vegcf%cpool_livecroot_gr(p) + &
@@ -2451,8 +2454,9 @@ module Method_procs_acc
         vegcf%cpool_deadcroot_storage_gr(p)
       enddo
         call p2c_1d_filter(bounds, num_soilc, filter_soilc, &
-             vegcf%rr, col_cf_input%rr)
-
+                rr_patch(bounds%begp:bounds%endp), &
+                rr_col(bounds%begc:bounds%endc))
+      end associate
     end subroutine vegcf_summary_rr_acc
 
     !-----------------------------------------------------------------------
@@ -2477,7 +2481,24 @@ module Method_procs_acc
       integer  :: p,j,k,l       ! indices
       integer  :: fp            ! lake filter indices
       !-----------------------------------------------------------------------
-
+      associate( &
+        gpp_patch => vegcf%gpp , &
+        gpp_col   => col_cf_input%gpp , &
+        ar_patch  => vegcf%ar , &
+        ar_col    => col_cf_input%ar , &
+        npp_patch => vegcf%npp , &
+        npp_col   => col_cf_input%npp , &
+        vegfire_patch => vegcf%vegfire , &
+        vegfire_col   => col_cf_input%vegfire , &
+        wood_harvestc_patch => vegcf%wood_harvestc , &
+        wood_harvestc_col   => col_cf_input%wood_harvestc , &
+        fire_closs_patch => vegcf%fire_closs , &
+        fire_closs_col   => col_cf_input%fire_closs_p2c , &
+        litfall_patch => vegcf%litfall , &
+        litfall_col   => col_cf_input%litfall , &
+        hrv_xsmrpool_to_atm_patch => vegcf%hrv_xsmrpool_to_atm , &
+        hrv_xsmrpool_to_atm_col   => col_cf_input%hrv_xsmrpool_to_atm  &
+        )
       if (use_fates) return
 
       ! patch loop
@@ -2487,7 +2508,7 @@ module Method_procs_acc
          ! calculate pft-level summary carbon fluxes and states
 
          ! gross primary production (GPP)
-         vegcf%gpp(p) = &
+          gpp_patch(p) = &
               vegcf%psnsun_to_cpool(p) + &
               vegcf%psnshade_to_cpool(p)
 
@@ -2559,43 +2580,41 @@ module Method_procs_acc
 
          ! autotrophic respiration (AR)
          if ( crop_prog .and. veg_pp%itype(p) >= npcropmin )then
-            vegcf%ar(p) = &
+            ar_patch(p) = &
                  vegcf%mr(p) + &
                  vegcf%gr(p) + &
                  vegcf%xr(p) + &
                  vegcf%xsmrpool_to_atm(p) ! xsmr... is -ve (slevis)
             if (nu_com .ne. 'RD' ) then
-               vegcf%ar(p) = vegcf%ar(p) + &
+               ar_patch(p) = ar_patch(p) + &
                     vegcf%xsmrpool_turnover(p)
             end if
          else
-            vegcf%ar(p) = &
+            ar_patch(p) = &
                  vegcf%mr(p) + &
                  vegcf%gr(p) + &
                  vegcf%xr(p)
             if (nu_com .ne. 'RD' ) then
-               vegcf%ar(p) = vegcf%ar(p) + &
+               ar_patch(p) = ar_patch(p) + &
                     vegcf%xsmrpool_turnover(p)
             end if
          end if
 
-
-
          ! net primary production (NPP)
-         vegcf%npp(p) = &
-              vegcf%gpp(p) - &
-              vegcf%ar(p)
+         npp_patch(p) = &
+              gpp_patch(p) - &
+              ar_patch(p)
 
          ! update the annual NPP accumulator, for use in allocation code
          if (isotope == bulk) then
             vegcf%tempsum_npp(p) = &
                  vegcf%tempsum_npp(p) + &
-                 vegcf%npp(p)
+                 npp_patch(p)
          end if
 
          ! litterfall (LITFALL)
 
-         vegcf%litfall(p) = &
+         litfall_patch(p) = &
               vegcf%leafc_to_litter(p)                     + &
               vegcf%frootc_to_litter(p)                    + &
               vegcf%m_leafc_to_litter(p)                   + &
@@ -2618,7 +2637,6 @@ module Method_procs_acc
               vegcf%m_deadcrootc_xfer_to_litter(p)         + &
               vegcf%m_gresp_storage_to_litter(p)           + &
               vegcf%m_gresp_xfer_to_litter(p)              + &
-
               vegcf%m_leafc_to_litter_fire(p)              + &
               vegcf%m_leafc_storage_to_litter_fire(p)      + &
               vegcf%m_leafc_xfer_to_litter_fire(p)         + &
@@ -2639,7 +2657,6 @@ module Method_procs_acc
               vegcf%m_deadcrootc_xfer_to_litter_fire(p)    + &
               vegcf%m_gresp_storage_to_litter_fire(p)      + &
               vegcf%m_gresp_xfer_to_litter_fire(p)         + &
-
               vegcf%hrv_leafc_to_litter(p)                 + &
               vegcf%hrv_leafc_storage_to_litter(p)         + &
               vegcf%hrv_leafc_xfer_to_litter(p)            + &
@@ -2662,20 +2679,20 @@ module Method_procs_acc
               vegcf%hrv_cpool_to_litter(p)
 
          ! patch-level fire losses (VEGFIRE)
-         vegcf%vegfire(p) = 0._r8
+         vegfire_patch(p) = 0._r8
 
          ! patch-level wood harvest
-         vegcf%wood_harvestc(p) = &
+         wood_harvestc_patch(p) = &
               vegcf%hrv_deadstemc_to_prod10c(p) + &
               vegcf%hrv_deadstemc_to_prod100c(p)
          if ( crop_prog .and. veg_pp%itype(p) >= npcropmin )then
-            vegcf%wood_harvestc(p) = &
-                 vegcf%wood_harvestc(p) + &
+            wood_harvestc_patch(p) = &
+                 wood_harvestc_patch(p) + &
                  vegcf%hrv_cropc_to_prod1c(p)
          end if
 
          ! patch-level carbon losses to fire changed by F. Li and S. Levis
-         vegcf%fire_closs(p) = &
+         fire_closs_patch(p) = &
               vegcf%m_leafc_to_fire(p)                + &
               vegcf%m_leafc_storage_to_fire(p)        + &
               vegcf%m_leafc_xfer_to_fire(p)           + &
@@ -2699,8 +2716,8 @@ module Method_procs_acc
               vegcf%m_cpool_to_fire(p)
 
          if ( crop_prog .and. veg_pp%itype(p) >= npcropmin )then
-            vegcf%litfall(p) =                  &
-                 vegcf%litfall(p)             + &
+            litfall_patch(p) =                  &
+                 litfall_patch(p)             + &
                  vegcf%livestemc_to_litter(p) + &
                  vegcf%grainc_to_food(p)
          end if
@@ -2785,36 +2802,38 @@ module Method_procs_acc
 
       ! use p2c routine to get selected column-average patch-level fluxes and states
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%gpp, &
-           col_cf_input%gpp)
+              gpp_patch(bounds%begp:bounds%endp), &
+              gpp_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%ar, &
-           col_cf_input%ar)
+              ar_patch(bounds%begp:bounds%endp), &
+              ar_col  (bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%npp, &
-           col_cf_input%npp)
+              npp_patch(bounds%begp:bounds%endp), &
+              npp_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%vegfire, &
-           col_cf_input%vegfire)
+              vegfire_patch(bounds%begp:bounds%endp), &
+              vegfire_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%wood_harvestc, &
-           col_cf_input%wood_harvestc)
+           wood_harvestc_patch(bounds%begp:bounds%endp), &
+           wood_harvestc_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%fire_closs, &
-           col_cf_input%fire_closs_p2c)
+           fire_closs_patch(bounds%begp:bounds%endp), &
+           fire_closs_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%litfall, &
-           col_cf_input%litfall)
+           litfall_patch(bounds%begp:bounds%endp), &
+           litfall_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcf%hrv_xsmrpool_to_atm, &
-           col_cf_input%hrv_xsmrpool_to_atm)
+           hrv_xsmrpool_to_atm_patch(bounds%begp:bounds%endp), &
+           hrv_xsmrpool_to_atm_col(bounds%begc:bounds%endc))
+
+      end associate
 
     end subroutine vegcf_summary_acc
 
@@ -2963,7 +2982,16 @@ module Method_procs_acc
       integer  :: fp              ! filter indices
       real(r8) :: maxdepth        ! depth to integrate soil variables
       !-----------------------------------------------------------------------
-
+      associate(&
+        totpftc_patch  => vegcs%totpftc         , &
+        totpftc_col    => col_cs%totpftc, &
+        totvegc_patch  => vegcs%totvegc , &
+        totvegc_col    => col_cs%totvegc, &
+        totvegc_abg_patch  => vegcs%totvegc_abg , &
+        totvegc_abg_col    => col_cs%totvegc_abg, &
+        cropseedc_deficit_patch  => vegcs%cropseedc_deficit ,&
+        cropseedc_deficit_col    => col_cs%cropseedc_deficit &
+        )
       if (use_fates) return
 
       do fp = 1,num_soilp
@@ -3007,12 +3035,12 @@ module Method_procs_acc
          end if
 
          ! total vegetation carbon, excluding cpool (TOTVEGC)
-         vegcs%totvegc(p) = &
+         totvegc_patch(p) = &
               vegcs%dispvegc(p) + &
               vegcs%storvegc(p)
 
          ! total pft-level carbon, including xsmrpool, ctrunc
-         vegcs%totpftc(p) = &
+         totpftc_patch(p) = &
               vegcs%totvegc(p) + &
               vegcs%xsmrpool(p) + &
               vegcs%ctrunc(p)
@@ -3024,7 +3052,7 @@ module Method_procs_acc
               vegcs%deadcrootc(p)   + &
               vegcs%livecrootc(p)
 
-         vegcs%totvegc_abg(p) = &
+         totvegc_abg_patch(p) = &
                  vegcs%leafc(p)              + &
                  vegcs%leafc_storage(p)      + &
                  vegcs%leafc_xfer(p)         + &
@@ -3038,21 +3066,21 @@ module Method_procs_acc
 
       ! a few vegetation-to-column summaries
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcs%totpftc , &
-           col_cs%totpftc)
+           totpftc_patch(bounds%begp:bounds%endp) , &
+           totpftc_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcs%totvegc , &
-           col_cs%totvegc)
+           totvegc_patch(bounds%begp:bounds%endp) , &
+           totvegc_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcs%totvegc_abg, &
-           col_cs%totvegc_abg)
+           totvegc_abg_patch(bounds%begp:bounds%endp), &
+           totvegc_abg_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegcs%cropseedc_deficit, &
-           col_cs%cropseedc_deficit)
-
+           cropseedc_deficit_patch(bounds%begp:bounds%endp), &
+           cropseedc_deficit_col(bounds%begc:bounds%endc))
+      end associate
     end subroutine vegcs_summary_acc
 
     !-----------------------------------------------------------------------
@@ -4138,6 +4166,12 @@ module Method_procs_acc
        integer  :: c,p             ! indices
        integer  :: fp              ! filter indices
        !-----------------------------------------------------------------------
+       associate(&
+         fire_nloss_patch => vegnf%fire_nloss ,&
+         fire_nloss_col   => col_nf%fire_nloss_p2c ,&
+         wood_harvestn_patch =>  vegnf%wood_harvestn, &
+         wood_harvestn_col   => col_nf%wood_harvestn &
+         )
        do fp = 1,num_soilp
           p = filter_soilp(fp)
 
@@ -4147,7 +4181,7 @@ module Method_procs_acc
                vegnf%retransn_to_npool(p)
 
           ! pft-level wood harvest
-          vegnf%wood_harvestn(p) = &
+          wood_harvestn_patch(p) = &
                vegnf%hrv_deadstemn_to_prod10n(p) + &
                vegnf%hrv_deadstemn_to_prod100n(p)
           if ( crop_prog .and. veg_pp%itype(p) >= npcropmin )then
@@ -4157,7 +4191,7 @@ module Method_procs_acc
           end if
 
           ! total pft-level fire N losses
-          vegnf%fire_nloss(p) = &
+          fire_nloss_patch(p) = &
                vegnf%m_leafn_to_fire(p)               + &
                vegnf%m_leafn_storage_to_fire(p)       + &
                vegnf%m_leafn_xfer_to_fire(p)          + &
@@ -4251,13 +4285,14 @@ module Method_procs_acc
        end do
 
        call p2c(bounds, num_soilc, filter_soilc, &
-            vegnf%fire_nloss     , &
-            col_nf%fire_nloss_p2c)
+            fire_nloss_patch(bounds%begp:bounds%endp)    , &
+            fire_nloss_col(bounds%begc:bounds%endc))
 
        call p2c(bounds, num_soilc, filter_soilc, &
-            vegnf%wood_harvestn , &
-            col_nf%wood_harvestn)
+            wood_harvestn_patch(bounds%begp:bounds%endp) , &
+            wood_harvestn_col(bounds%begc:bounds%endc))
 
+      end associate
      end subroutine vegnf_summary_acc
 
      !-----------------------------------------------------------------------
@@ -4280,6 +4315,16 @@ module Method_procs_acc
        integer  :: c,p             ! indices
        integer  :: fp              ! filter indices
        !-----------------------------------------------------------------------
+       associate( &
+        plant_n_buffer_patch  => vegns%plant_n_buffer  , &
+        plant_n_buffer_col    => col_ns%plant_n_buffer , &
+        totvegn_patch  => vegns%totvegn   , &
+        totvegn_col    => col_ns%totvegn, &
+        totpftn_patch  => vegns%totpftn   , &
+        totpftn_col    => col_ns%totpftn, &
+        cropseedn_deficit_patch  => vegns%cropseedn_deficit , &
+        cropseedn_deficit_col    => col_ns%cropseedn_deficit &
+         )
        do fp = 1,num_soilp
           p = filter_soilp(fp)
 
@@ -4321,31 +4366,33 @@ module Method_procs_acc
          end if
 
          ! total vegetation nitrogen (TOTVEGN)
-         vegns%totvegn(p) = &
+         totvegn_patch(p) = &
               vegns%dispvegn(p) + &
               vegns%storvegn(p)
 
          ! total pft-level carbon (add pft_ntrunc)
-         vegns%totpftn(p) = &
-              vegns%totvegn(p) + &
+         totpftn_patch(p) = &
+              totvegn_patch(p) + &
               vegns%ntrunc(p)
       end do ! filtered veg loop
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegns%plant_n_buffer, &
-           col_ns%plant_n_buffer)
+           plant_n_buffer_patch(bounds%begp:bounds%endp)  , &
+           plant_n_buffer_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegns%totvegn , &
-           col_ns%totvegn)
+           totvegn_patch(bounds%begp:bounds%endp) , &
+           totvegn_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegns%totpftn , &
-           col_ns%totpftn)
+           totpftn_patch(bounds%begp:bounds%endp) , &
+           totpftn_col(bounds%begc:bounds%endc))
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegns%cropseedn_deficit , &
-           col_ns%cropseedn_deficit)
+           cropseedn_deficit_patch(bounds%begp:bounds%endp) , &
+           cropseedn_deficit_col(bounds%begc:bounds%endc))
+
+      end associate
 
      end subroutine vegns_summary_acc
 
@@ -4365,6 +4412,12 @@ module Method_procs_acc
        ! !LOCAL VARIABLES:
        integer  :: p, fp   ! indices
        !-----------------------------------------------------------------------
+       associate( &
+         fire_ploss_patch => vegpf%fire_ploss      ,&
+         fire_ploss_col   => col_pf%fire_ploss_p2c ,&
+         wood_harvestp_patch  => vegpf%wood_harvestp ,&
+         wood_harvestp_col => col_pf%wood_harvestp &
+         )
        do fp = 1,num_soilp
           p = filter_soilp(fp)
 
@@ -4374,17 +4427,17 @@ module Method_procs_acc
                vegpf%retransp_to_ppool(p)
 
           ! pft-level wood harvest
-          vegpf%wood_harvestp(p) = &
+          wood_harvestp_patch(p) = &
                vegpf%hrv_deadstemp_to_prod10p(p) + &
                vegpf%hrv_deadstemp_to_prod100p(p)
           if ( crop_prog .and. veg_pp%itype(p) >= npcropmin )then
-               vegpf%wood_harvestp(p) = &
-               vegpf%wood_harvestp(p) + &
-               vegpf%hrv_cropp_to_prod1p(p)
+               wood_harvestp_patch(p) = &
+                wood_harvestp_patch(p) + &
+                vegpf%hrv_cropp_to_prod1p(p)
           end if
 
           ! total pft-level fire P losses
-          vegpf%fire_ploss(p) = &
+          fire_ploss_patch(p) = &
                vegpf%m_leafp_to_fire(p)               + &
                vegpf%m_leafp_storage_to_fire(p)       + &
                vegpf%m_leafp_xfer_to_fire(p)          + &
@@ -4478,12 +4531,14 @@ module Method_procs_acc
        end do
 
        call p2c(bounds, num_soilc, filter_soilc, &
-            vegpf%fire_ploss     , &
-            col_pf%fire_ploss_p2c)
+            fire_ploss_patch(bounds%begp:bounds%endp)     , &
+            fire_ploss_col(bounds%begc:bounds%endc) )
 
        call p2c(bounds, num_soilc, filter_soilc, &
-            vegpf%wood_harvestp , &
-            col_pf%wood_harvestp)
+            wood_harvestp_patch(bounds%begp:bounds%endp) , &
+            wood_harvestp_col(bounds%begc:bounds%endc))
+
+       end associate
 
      end subroutine vegpf_summary_acc
 
@@ -4504,6 +4559,14 @@ module Method_procs_acc
        integer  :: p        ! indices
        integer  :: fp       ! lake filter indices
        !-----------------------------------------------------------------------
+       associate( &
+        totvegp_patch  => vegps%totvegp   , &
+        totvegp_col    => col_ps%totvegp, &
+        totpftp_patch  => vegps%totpftp   , &
+        totpftp_col    => col_ps%totpftp, &
+        cropseedp_deficit_patch  => vegps%cropseedp_deficit , &
+        cropseedp_deficit_col    => col_ps%cropseedp_deficit &
+         )
        do fp = 1,num_soilp
           p = filter_soilp(fp)
 
@@ -4545,28 +4608,29 @@ module Method_procs_acc
          end if
 
          ! total vegetation phosphorus (TOTVEGN)
-         vegps%totvegp(p) = &
+         totvegp_patch(p) = &
               vegps%dispvegp(p) + &
               vegps%storvegp(p)
 
          ! total pft-level carbon (add pft_ntrunc)
-         vegps%totpftp(p) = &
-              vegps%totvegp(p) + &
+         totpftp_patch(p) = &
+              totvegp_patch(p) + &
               vegps%ptrunc(p)
 
       end do
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegps%totvegp , &
-           col_ps%totvegp)
+           totvegp_patch(bounds%begp:bounds%endp)  , &
+           totvegp_col(bounds%begc:bounds%endc) )
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegps%totpftp , &
-           col_ps%totpftp)
+           totpftp_patch(bounds%begp:bounds%endp) , &
+           totpftp_col(bounds%begc:bounds%endc) )
 
       call p2c(bounds, num_soilc, filter_soilc, &
-           vegps%cropseedp_deficit , &
-           col_ps%cropseedp_deficit)
+           cropseedp_deficit_patch(bounds%begp:bounds%endp) , &
+           cropseedp_deficit_col(bounds%begc:bounds%endc) )
+      end associate
 
      end subroutine vegps_summary_acc
 

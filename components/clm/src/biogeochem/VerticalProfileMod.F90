@@ -6,7 +6,6 @@ module VerticalProfileMod
   ! !USES:
   use shr_kind_mod    , only: r8 => shr_kind_r8
   use decompMod       , only : bounds_type
-  use subgridAveMod   , only : p2c
   use SoilStateType   , only : soilstate_type
   use CanopyStateType , only : canopystate_type
   use CNStateType     , only : cnstate_type
@@ -179,6 +178,7 @@ contains
                ! where there is not permafrost extending to the surface, integrate the profiles over the active layer
                ! this is equivalnet to integrating over all soil layers outside of permafrost regions
                do j = 1, min(max(altmax_lastyear_indx(c), 1), nlevdecomp)
+      
                   froot_prof(p,j) = cinput_rootfr(p,j) / rootfr_tot
                   croot_prof(p,j) = cinput_rootfr(p,j) / rootfr_tot
                   ! set all surface processes to shallower profile
@@ -196,10 +196,6 @@ contains
          end do
 
          !! aggregate root profile to column
-         ! call p2c (decomp, nlevdecomp_full, &
-         !      cinput_rootfr(bounds%begp:bounds%endp, :), &
-         !      col_cinput_rootfr(bounds%begc:bounds%endc, :), &
-         !      'unity')
          do pi = 1,maxpatch_pft
             do fc = 1,num_soilc
                c = filter_soilc(fc)
@@ -262,8 +258,6 @@ contains
          end do
          if ( ( abs(ndep_prof_sum - 1._r8) > delta ) .or.  ( abs(nfixation_prof_sum - 1._r8) > delta ) .or. &
               ( abs(pdep_prof_sum - 1._r8) > delta )  ) then
-            print *, 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
-            print *, 'c: ', c
             !#py write(iulog, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
             !#py write(iulog, *) 'nfixation_prof: ', nfixation_prof(c,:)
             !#py write(iulog, *) 'ndep_prof: ', ndep_prof(c,:)
@@ -294,7 +288,6 @@ contains
          end do
          if ( ( abs(froot_prof_sum - 1._r8) > delta ) .or.  ( abs(croot_prof_sum - 1._r8) > delta ) .or. &
               ( abs(stem_prof_sum - 1._r8) > delta ) .or.  ( abs(leaf_prof_sum - 1._r8) > delta ) ) then
-                print *, 'profile sums: ', froot_prof_sum, croot_prof_sum, leaf_prof_sum, stem_prof_sum
             !#py !#py call endrun(msg=' ERROR: sum-1 > delta'//errMsg(__FILE__, __LINE__))
          endif
       end do
@@ -461,10 +454,6 @@ contains
          end do
 
          !! aggregate root profile to column
-         ! call p2c (decomp, nlevdecomp_full, &
-         !      cinput_rootfr(bounds%begp:bounds%endp, :), &
-         !      col_cinput_rootfr(bounds%begc:bounds%endc, :), &
-         !      'unity')
          do pi = 1,maxpatch_pft
             do fc = 1,num_soilc
                c = filter_soilc(fc)
@@ -527,8 +516,6 @@ contains
          end do
          if ( ( abs(ndep_prof_sum - 1._r8) > delta ) .or.  ( abs(nfixation_prof_sum - 1._r8) > delta ) .or. &
               ( abs(pdep_prof_sum - 1._r8) > delta )  ) then
-            print *, 'profile sums: ', ndep_prof_sum, nfixation_prof_sum, pdep_prof_sum
-            print *, 'c: ', c
             !#py write(iulog, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
             !#py write(iulog, *) 'nfixation_prof: ', nfixation_prof(c,:)
             !#py write(iulog, *) 'ndep_prof: ', ndep_prof(c,:)

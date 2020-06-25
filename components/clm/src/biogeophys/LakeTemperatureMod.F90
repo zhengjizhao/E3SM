@@ -493,9 +493,9 @@ contains
 
     ! For snow / soil
     call SoilThermProp_Lake(bounds, num_lakec, filter_lakec, &
-         tk, &
-         cv, &
-         tktopsoillay, &
+         tk(bounds%begc:bounds%endc, :), &
+         cv(bounds%begc:bounds%endc, :), &
+         tktopsoillay(bounds%begc:bounds%endc), &
          soilstate_vars)
 
     ! Sum cv*t_lake for energy check
@@ -671,13 +671,13 @@ contains
     ! 7!) Solve for tdsolution
 
     call Tridiagonal(bounds, -nlevsno + 1, nlevlak + nlevgrnd, &
-         jtop, &
+         jtop(bounds%begc:bounds%endc), &
          num_lakec, filter_lakec, &
-         a, &
-         b, &
-         c1, &
-         r, &
-         tx)
+         a(bounds%begc:bounds%endc, :), &
+         b(bounds%begc:bounds%endc, :), &
+         c1(bounds%begc:bounds%endc, :), &
+         r(bounds%begc:bounds%endc, :), &
+         tx(bounds%begc:bounds%endc, :))
 
     ! Set t_soisno and t_lake
     do j = -nlevsno+1, nlevlak + nlevgrnd
@@ -709,9 +709,9 @@ contains
 
     ! 9!) Phase change
     call PhaseChange_Lake(bounds, num_lakec, filter_lakec, &
-         cv, &
-         cv_lake, &
-         lhabs, &
+         cv(bounds%begc:bounds%endc, :), &
+         cv_lake(bounds%begc:bounds%endc, :), &
+         lhabs(bounds%begc:bounds%endc), &
          energyflux_vars, lakestate_vars, dtime)
 
     !!!!!!!!!!!!!!!!!!!!!!!
@@ -986,9 +986,9 @@ contains
 
     ! For snow / soil
     call SoilThermProp_Lake(bounds, num_lakec, filter_lakec, &
-         tk, &
-         cv, &
-         tktopsoillay, &
+         tk(bounds%begc:bounds%endc, :), &
+         cv(bounds%begc:bounds%endc, :), &
+         tktopsoillay(bounds%begc:bounds%endc), &
          soilstate_vars)
 
 
@@ -1092,8 +1092,6 @@ contains
      real(r8)               , intent(out) :: tk( bounds%begc: , -nlevsno+1: ) ! thermal conductivity [W/(m K)] [col, lev]
      real(r8)               , intent(out) :: tktopsoillay( bounds%begc: )     ! thermal conductivity [W/(m K)] [col]
      type(soilstate_type)   , intent(in)  :: soilstate_vars
-     !type(waterstate_type)  , intent(in)  :: waterstate_vars
-     !type(temperature_type) , intent(in)  :: temperature_vars
 
      !
      ! !LOCAL VARIABLES:

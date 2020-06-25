@@ -178,10 +178,9 @@ module decompMod
      integer         :: begc_all, endc_all               ! beginning and ending column index
      integer         :: begp_all, endp_all               ! beginning and ending pft index
      integer         :: begCohort_all, endCohort_all     ! beginning and ending cohort indices
-
   end type processor_type
   public processor_type
-  type(processor_type),public :: procinfo
+  type(processor_type), public :: procinfo
 
   type :: processor_type_gpu
      integer, pointer :: nclumps   => null()             ! number of clumps for processor_type iam
@@ -753,7 +752,7 @@ contains
 
    end subroutine get_proc_total_ghosts
 
-   subroutine get_clump_bounds_gpu (n, bounds)
+   subroutine get_clump_bounds_gpu(n, bounds)
      !$acc routine seq
      ! !DESCRIPTION:
      ! Determine clump bounds

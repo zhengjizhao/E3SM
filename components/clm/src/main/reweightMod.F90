@@ -47,7 +47,7 @@ contains
     call set_active(bounds)
     call check_weights(bounds, active_only=.false.)
     call check_weights(bounds, active_only=.true.)
-    call setFilters(bounds, icemask_grc)
+    call setFilters(bounds, icemask_grc(bounds%begg:bounds%endg) )
         
   end subroutine reweight_wrapup
 

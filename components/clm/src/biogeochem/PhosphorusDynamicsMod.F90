@@ -12,7 +12,6 @@ module PhosphorusDynamicsMod
   use shr_kind_mod        , only : r8 => shr_kind_r8
   use decompMod           , only : bounds_type
   use clm_varcon          , only : dzsoi_decomp, zisoi
-  use subgridAveMod       , only : p2c
   use atm2lndType         , only : atm2lnd_type
   use CNCarbonFluxType    , only : carbonflux_type
   use clm_varpar          , only : nlevdecomp

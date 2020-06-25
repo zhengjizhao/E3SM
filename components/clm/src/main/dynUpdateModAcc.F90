@@ -349,13 +349,13 @@ contains
 
     call update_column_state_acc(column_state_updater,&
          bounds = bounds, &
-         vals_input = vals_input, &
-         vals_input_valid     = vals_input_valid, &
-         has_prognostic_state = has_prognostic_state, &
-         fractional_area_old  = my_fractional_area_old, &
-         fractional_area_new  = my_fractional_area_new, &
-         var = var, &
-         non_conserved_mass = non_conserved_mass, &
+         vals_input = vals_input(bounds%begc:bounds%endc), &
+         vals_input_valid     = vals_input_valid(bounds%begc:bounds%endc), &
+         has_prognostic_state = has_prognostic_state(bounds%begc:bounds%endc), &
+         fractional_area_old  = my_fractional_area_old(bounds%begc:bounds%endc), &
+         fractional_area_new  = my_fractional_area_new(bounds%begc:bounds%endc), &
+         var = var(bounds%begc:bounds%endc), &
+         non_conserved_mass = non_conserved_mass(bounds%begc:bounds%endc), &
          adjustment = adjustment)
 
   end subroutine update_column_state_with_optional_fractions_acc

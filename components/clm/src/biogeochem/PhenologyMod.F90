@@ -439,10 +439,10 @@ contains
       ! set time steps
       dt = dtime_mod
       dayspyr = dayspyr_mod
-      kyr = year_mod
-      kda = day_mod
-      kmo = mon_mod
-      mcsec = secs_mod
+      kyr = year_curr
+      kda = day_curr
+      kmo = mon_curr
+      mcsec = secs_curr
       !#py dayspyr = get_days_per_year()
 
       do fp = 1,num_soilp
@@ -1485,10 +1485,10 @@ contains
       !#py call get_curr_date(kyr, kmo, kda, mcsec)
       dt = dtime_mod
       dayspyr = dayspyr_mod
-      kyr = year_mod
-      kda = day_mod
-      kmo = mon_mod
-      mcsec = secs_mod
+      kyr = year_curr
+      kda = day_curr
+      kmo = mon_curr
+      mcsec = secs_curr
       jday  = jday_mod
 
       ndays_on = 20._r8 ! number of days to fertilize
@@ -2214,10 +2214,10 @@ contains
       if (num_pcropp > 0) then
          ! get time-related info
          !#py call get_curr_date(kyr, kmo, kda, mcsec)
-         kyr = year_mod
-         kmo = mon_mod
-         kda = day_mod
-         mcsec = secs_mod
+         kyr = year_curr
+         kmo = mon_curr
+         kda = day_curr
+         mcsec = secs_curr
       end if
 
       do fp = 1,num_pcropp
