@@ -1450,6 +1450,29 @@ contains
                aer_optics_sw%ssa = 0
                aer_optics_sw%g   = 0
 
+               ! Do aerosol optics outside CRM loop
+               if (radiation_do('sw')) then
+                  call t_startf('rad_aerosol_optics_sw')
+                  aer_tau_bnd_sw = 0._r8
+                  aer_ssa_bnd_sw = 0._r8
+                  aer_asm_bnd_sw = 0._r8
+                  call set_aerosol_optics_sw( &
+                     icall, state, pbuf, night_indices(1:nnight), is_cmip6_volc, &
+                     aer_tau_bnd_sw, aer_ssa_bnd_sw, aer_asm_bnd_sw &
+                  )
+                  call handle_error(clip_values(aer_tau_bnd_sw,  0._r8, huge(aer_tau_bnd_sw), trim(subname) // ' aer_tau_bnd_sw', tolerance=1e-10_r8))
+                  call handle_error(clip_values(aer_ssa_bnd_sw,  0._r8,                1._r8, trim(subname) // ' aer_ssa_bnd_sw', tolerance=1e-10_r8))
+                  call handle_error(clip_values(aer_asm_bnd_sw, -1._r8,                1._r8, trim(subname) // ' aer_asm_bnd_sw', tolerance=1e-10_r8))
+                  call t_stopf('rad_aerosol_optics_sw')
+               end if
+               if (radiation_do('lw')) then
+                  call t_startf('rad_aerosol_optics_lw')
+                  aer_tau_bnd_lw = 0._r8
+                  call set_aerosol_optics_lw(icall, state, pbuf, is_cmip6_volc, aer_tau_bnd_lw)
+                  call handle_error(clip_values(aer_tau_bnd_lw,  0._r8, huge(aer_tau_bnd_lw), trim(subname) // ': aer_tau_bnd_lw', tolerance=1e-10_r8))
+                  call t_stopf('rad_aerosol_optics_lw')
+               end if
+
                ! Loop over CRM columns; call routines designed to work with
                ! pbuf/state over ncol columns for each CRM column index, and pack
                ! into arrays dimensioned ncol_tot = ncol * ncrms
@@ -1558,23 +1581,11 @@ contains
                         )
                         call output_cloud_optics_sw(state, cld_tau_bnd_sw, cld_ssa_bnd_sw, cld_asm_bnd_sw)
                         call t_stopf('rad_cloud_optics_sw')
-                        ! Do aerosol optics
-                        call t_startf('rad_aerosol_optics_sw')
-                        aer_tau_bnd_sw = 0._r8
-                        aer_ssa_bnd_sw = 0._r8
-                        aer_asm_bnd_sw = 0._r8
-                        call set_aerosol_optics_sw( &
-                           icall, state, pbuf, night_indices(1:nnight), is_cmip6_volc, &
-                           aer_tau_bnd_sw, aer_ssa_bnd_sw, aer_asm_bnd_sw &
-                        )
-                        call t_stopf('rad_aerosol_optics_sw')
+
                         ! Check (and possibly clip) values before passing to RRTMGP driver
                         call handle_error(clip_values(cld_tau_gpt_sw,  0._r8, huge(cld_tau_gpt_sw), trim(subname) // ' cld_tau_gpt_sw', tolerance=1e-10_r8))
                         call handle_error(clip_values(cld_ssa_gpt_sw,  0._r8,                1._r8, trim(subname) // ' cld_ssa_gpt_sw', tolerance=1e-10_r8))
                         call handle_error(clip_values(cld_asm_gpt_sw, -1._r8,                1._r8, trim(subname) // ' cld_asm_gpt_sw', tolerance=1e-10_r8))
-                        call handle_error(clip_values(aer_tau_bnd_sw,  0._r8, huge(aer_tau_bnd_sw), trim(subname) // ' aer_tau_bnd_sw', tolerance=1e-10_r8))
-                        call handle_error(clip_values(aer_ssa_bnd_sw,  0._r8,                1._r8, trim(subname) // ' aer_ssa_bnd_sw', tolerance=1e-10_r8))
-                        call handle_error(clip_values(aer_asm_bnd_sw, -1._r8,                1._r8, trim(subname) // ' aer_asm_bnd_sw', tolerance=1e-10_r8))
                      end if
 
                      ! Longwave cloud and aerosol optics
@@ -1594,14 +1605,8 @@ contains
                         )
                         call output_cloud_optics_lw(state, cld_tau_bnd_lw)
                         call t_stopf('rad_cloud_optics_lw')
-                        ! Do aerosol optics
-                        call t_startf('rad_aerosol_optics_lw')
-                        aer_tau_bnd_lw = 0._r8
-                        call set_aerosol_optics_lw(icall, state, pbuf, is_cmip6_volc, aer_tau_bnd_lw)
-                        call t_stopf('rad_aerosol_optics_lw')
                         ! Check (and possibly clip) values before passing to RRTMGP driver
                         call handle_error(clip_values(cld_tau_gpt_lw,  0._r8, huge(cld_tau_gpt_lw), trim(subname) // ': cld_tau_gpt_lw', tolerance=1e-10_r8))
-                        call handle_error(clip_values(aer_tau_bnd_lw,  0._r8, huge(aer_tau_bnd_lw), trim(subname) // ': aer_tau_bnd_lw', tolerance=1e-10_r8))
                      end if
 
                      ! Pack data
