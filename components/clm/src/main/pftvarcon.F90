@@ -48,6 +48,10 @@ module pftvarcon
   integer :: npcropmax              !value for last prognostic crop in list
   integer :: nc3crop                !value for generic crop (rf)
   integer :: nc3irrig               !value for irrigated generic crop (ir)
+  integer :: nmiscanthus            !value for miscanthus, rain fed (rf)
+  integer :: nmiscanthusirrig       !value for miscanthus, irrigated (ir)
+  integer :: nswitchgrass           !value for switchgrass, rain fed (rf)
+  integer :: nswitchgrassirrig      !value for switchgrass, irrigated (ir)
 
   ! Number of crop functional types actually used in the model. This includes each CFT for
   ! which is_pft_known_to_model is true. Note that this includes irrigated crops even if
@@ -76,6 +80,7 @@ module pftvarcon
   real(r8), allocatable :: slatop(:)      !SLA at top of canopy [m^2/gC]
   real(r8), allocatable :: dsladlai(:)    !dSLA/dLAI [m^2/gC]
   real(r8), allocatable :: leafcn(:)      !leaf C:N [gC/gN]
+  real(r8), allocatable :: biofuel_harvfrac (:) ! fraction of stem and leaf cut for harvest, sent to biofuels [unitless]
   real(r8), allocatable :: flnr(:)        !fraction of leaf N in Rubisco [no units]
   real(r8), allocatable :: woody(:)       !woody lifeform flag (0 or 1)
   real(r8), allocatable :: lflitcn(:)     !leaf litter C:N (gC/gN)
@@ -365,7 +370,8 @@ contains
     allocate( fnitr         (0:mxpft) )       
     allocate( slatop        (0:mxpft) )      
     allocate( dsladlai      (0:mxpft) )    
-    allocate( leafcn        (0:mxpft) )      
+    allocate( leafcn        (0:mxpft) )
+    allocate( biofuel_harvfrac (0:mxpft) )
     allocate( flnr          (0:mxpft) )        
     allocate( woody         (0:mxpft) )       
     allocate( lflitcn       (0:mxpft) )      
@@ -568,6 +574,8 @@ contains
     call ncd_io('dsladlai',dsladlai, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
     call ncd_io('leafcn',leafcn, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('biofuel_harvfrac',biofuel_harvfrac, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
     call ncd_io('flnr',flnr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
@@ -998,6 +1006,11 @@ contains
           if ( pprodharv10(i) > 1.0_r8 .or. pprodharv10(i) < 0.0_r8 )then
              call endrun(msg=' ERROR: pprodharv10 outside of range.'//errMsg(__FILE__, __LINE__))
           end if
+          if (i < npcropmin .and. biofuel_harvfrac(i) /= 0._r8) then
+             call endrun(msg=' ERROR: biofuel_harvfrac non-zero for a non-prognostic crop PFT.'//&
+             errMsg(__FILE__, __LINE__))
+          end if
+
        end do
     end if
 

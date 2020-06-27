@@ -410,6 +410,8 @@ contains
             veg_ns%frootn(p)     = veg_ns%frootn(p)     - veg_nf%frootn_to_retransn(p)*dt
             veg_ns%retransn(p)   = veg_ns%retransn(p)   + veg_nf%frootn_to_retransn(p)*dt
             veg_ns%livestemn(p)  = veg_ns%livestemn(p)  - veg_nf%livestemn_to_litter(p)*dt
+            veg_ns%livestemn(p)  = veg_ns%livestemn(p)  - veg_nf%livestemn_to_biofueln(p)*dt
+            veg_ns%leafn(p)      = veg_ns%leafn(p)      - veg_nf%leafn_to_biofueln(p)*dt
             veg_ns%livestemn(p)  = veg_ns%livestemn(p)  - veg_nf%livestemn_to_retransn(p)*dt
             veg_ns%retransn(p)   = veg_ns%retransn(p)   + veg_nf%livestemn_to_retransn(p)*dt
             veg_ns%grainn(p)     = veg_ns%grainn(p)     - veg_nf%grainn_to_food(p)*dt

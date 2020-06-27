@@ -346,6 +346,8 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
             veg_cs%livestemc(p)  = veg_cs%livestemc(p)  - veg_cf%livestemc_to_litter(p)*dt
+            veg_cs%livestemc(p)  = veg_cs%livestemc(p)  - veg_cf%livestemc_to_biofuelc(p)*dt
+            veg_cs%leafc(p)      = veg_cs%leafc(p)      - veg_cf%leafc_to_biofuelc(p)*dt
             veg_cs%grainc(p)     = veg_cs%grainc(p)     - veg_cf%grainc_to_food(p)*dt
 
             veg_cs%cropseedc_deficit(p) = veg_cs%cropseedc_deficit(p) &

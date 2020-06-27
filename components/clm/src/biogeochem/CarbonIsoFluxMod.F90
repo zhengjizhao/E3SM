@@ -8,6 +8,7 @@ module CarbonIsoFluxMod
   use shr_log_mod            , only : errMsg => shr_log_errMsg
   use clm_varpar             , only : ndecomp_cascade_transitions, nlevdecomp, ndecomp_pools
   use clm_varpar             , only : max_patch_per_col, maxpatch_pft
+  use clm_varpar             , only : crop_prog
   use abortutils             , only : endrun
   use CNDecompCascadeConType , only : decomp_cascade_con
   use VegetationPropertiesType         , only : veg_vp
@@ -372,6 +373,18 @@ contains
            isoveg_cs%gresp_storage                , veg_cs%gresp_storage, &
            num_soilp                                            , filter_soilp, 1._r8, 0, isotope)
 
+      if ( crop_prog )then
+           call CarbonIsoFluxCalc(&
+     	          isoveg_cf%leafc_to_biofuelc             , veg_cf%leafc_to_biofuelc, &
+                isoveg_cs%leafc                         , veg_cs%leafc, &
+                num_soilp                                        , filter_soilp, 1._r8, 0, isotope)
+
+           call CarbonIsoFluxCalc(&
+                isoveg_cf%livestemc_to_biofuelc         , veg_cf%livestemc_to_biofuelc, &
+                isoveg_cs%livestemc                     , veg_cs%livestemc, &
+                num_soilp                                        , filter_soilp, 1._r8, 0, isotope)
+      end if
+           
       ! call routine to shift patch-level litterfall fluxes to column, for isotopes
       ! the non-isotope version of this routine is called in PhenologyMod.F90.F90
       ! For later clean-up, it would be possible to generalize this function to operate on a single 

@@ -508,6 +508,8 @@ module VegetationDataType
     real(r8), pointer :: frootc_to_litter                    (:) => null()    ! fine root C litterfall (gC/m2/s)
     real(r8), pointer :: livestemc_to_litter                 (:) => null()    ! live stem C litterfall (gC/m2/s)
     real(r8), pointer :: grainc_to_food                      (:) => null()    ! grain C to food for prognostic crop(gC/m2/s)
+    real(r8), pointer :: leafc_to_biofuelc                   (:) => null()    ! leaf C to biofuel C (gC/m2/s)
+    real(r8), pointer :: livestemc_to_biofuelc               (:) => null()    ! livestem C to biofuel C (gC/m2/s)
                                                                  
     ! maintenance respiration fluxes                             
     real(r8), pointer :: leaf_mr                             (:) => null()    ! leaf maintenance respiration (gC/m2/s)
@@ -771,6 +773,8 @@ module VegetationDataType
     ! litterfall fluxes
     real(r8), pointer :: livestemn_to_litter                 (:)   => null()  ! livestem N to litter (gN/m2/s)
     real(r8), pointer :: grainn_to_food                      (:)   => null()  ! grain N to food for prognostic crop (gN/m2/s)
+    real(r8), pointer :: leafn_to_biofueln                   (:)   => null()  ! patch leaf N to biofuel N (gN/m2/s)
+    real(r8), pointer :: livestemn_to_biofueln               (:)   => null()  ! patch livestem N to biofuel N (gN/m2/s)
     real(r8), pointer :: leafn_to_litter                     (:)   => null()  ! leaf N litterfall (gN/m2/s)
     real(r8), pointer :: leafn_to_retransn                   (:)   => null()  ! leaf N to retranslocated N pool (gN/m2/s)
     real(r8), pointer :: frootn_to_retransn                  (:)   => null()  ! fine root N to retranslocated N pool (gN/m2/s)
@@ -5713,6 +5717,8 @@ module VegetationDataType
        allocate(this%frootc_to_litter                    (begp:endp)) ;    this%frootc_to_litter                     (:) = nan
        allocate(this%livestemc_to_litter                 (begp:endp)) ;    this%livestemc_to_litter                  (:) = nan
        allocate(this%grainc_to_food                      (begp:endp)) ;    this%grainc_to_food                       (:) = nan
+       allocate(this%leafc_to_biofuelc                   (begp:endp)) ;    this%leafc_to_biofuelc                    (:) = nan
+       allocate(this%livestemc_to_biofuelc               (begp:endp)) ;    this%livestemc_to_biofuelc                (:) = nan
        allocate(this%leaf_mr                             (begp:endp)) ;    this%leaf_mr                              (:) = nan
        allocate(this%froot_mr                            (begp:endp)) ;    this%froot_mr                             (:) = nan
        allocate(this%livestem_mr                         (begp:endp)) ;    this%livestem_mr                          (:) = nan
@@ -5843,6 +5849,16 @@ module VegetationDataType
           call hist_addfld1d (fname='GRAINC_TO_FOOD', units='gC/m^2/s', &
                avgflag='A', long_name='grain C to food', &
                ptr_patch=this%grainc_to_food, default='inactive')
+               
+          this%leafc_to_biofuelc(begp:endp) = spval
+          call hist_addfld1d (fname='LEAFC_TO_BIOFUELC', units='gC/m^2/s', &
+               avgflag='A', long_name='leaf C to biofuel C', &
+               ptr_patch=this%leafc_to_biofuelc)
+
+          this%livestemc_to_biofuelc(begp:endp) = spval
+          call hist_addfld1d (fname='LIVESTEMC_TO_BIOFUELC', units='gC/m^2/s', &
+               avgflag='A', long_name='livestem C to biofuel C', &
+               ptr_patch=this%livestemc_to_biofuelc)
        end if
 
        this%woodc_alloc(begp:endp) = spval
@@ -8719,6 +8735,8 @@ module VegetationDataType
           this%xsmrpool_to_atm(i)         = value_patch
           this%livestemc_to_litter(i)     = value_patch
           this%grainc_to_food(i)          = value_patch
+          this%leafc_to_biofuelc(i)       = value_patch
+          this%livestemc_to_biofuelc(i)   = value_patch
           this%grainc_xfer_to_grainc(i)   = value_patch
           this%cpool_to_grainc(i)         = value_patch
           this%cpool_to_grainc_storage(i) = value_patch
@@ -8888,6 +8906,8 @@ module VegetationDataType
     allocate(this%npool_to_grainn_storage             (begp:endp)) ; this%npool_to_grainn_storage             (:) = nan
     allocate(this%livestemn_to_litter                 (begp:endp)) ; this%livestemn_to_litter                 (:) = nan
     allocate(this%grainn_to_food                      (begp:endp)) ; this%grainn_to_food                      (:) = nan
+    allocate(this%leafn_to_biofueln                   (begp:endp)) ; this%leafn_to_biofueln                   (:) = nan
+    allocate(this%livestemn_to_biofueln               (begp:endp)) ; this%livestemn_to_biofueln               (:) = nan
     allocate(this%grainn_xfer_to_grainn               (begp:endp)) ; this%grainn_xfer_to_grainn               (:) = nan
     allocate(this%grainn_storage_to_xfer              (begp:endp)) ; this%grainn_storage_to_xfer              (:) = nan
     allocate(this%fert                                (begp:endp)) ; this%fert                                (:) = nan
@@ -9691,6 +9711,8 @@ module VegetationDataType
        do fi = 1,num_patch
           i = filter_patch(fi)
           this%grainn_to_food(i)                   = value_patch
+          this%leafn_to_biofueln(i)                = value_patch
+          this%livestemn_to_biofueln(i)            = value_patch
           this%grainn_xfer_to_grainn(i)            = value_patch
           this%npool_to_grainn(i)                  = value_patch
           this%npool_to_grainn_storage(i)          = value_patch
