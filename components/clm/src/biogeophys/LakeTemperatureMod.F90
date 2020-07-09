@@ -669,7 +669,6 @@ contains
 
 
     ! 7!) Solve for tdsolution
-
     call Tridiagonal(bounds, -nlevsno + 1, nlevlak + nlevgrnd, &
          jtop(bounds%begc:bounds%endc), &
          num_lakec, filter_lakec, &
@@ -700,7 +699,6 @@ contains
     end do
 
     !!!!!!!!!!!!!!!!!!!!!!!
-
     ! 8!) Sum energy content and total energy into lake for energy check. Any errors will be from the
     !     Tridiagonal solution.
     ! This section was for debugging only and has been removed.  See original "ch4" branch code.
