@@ -98,8 +98,11 @@ real(r8), parameter :: tboil = 373.16_r8
        -3.67471858735e-01_r8, &
        -8.95963532403e-03_r8, &
        -7.78053686625e-05_r8 /)
+#if defined (_OPENACC)
 !$acc declare create(omeps, estbl) copyin(pcf)
-
+#elif defined (_OPENMP)
+!$omp declare target (omeps, estbl, pcf)
+#endif
 !   --- Degree 6 approximation ---
 !  real(r8) :: pcf(6) = (/ &
 !       7.63285250063e-02, &
@@ -197,8 +200,11 @@ subroutine wv_sat_init
 
   ! Precalculated because so frequently used.
   omeps  = 1.0_r8 - epsilo
+#if defined (_OPENACC)
 !$acc update device(omeps)
-
+#elif defined (_OPENMP)
+!$omp target update to(omeps)
+#endif
   ! Transition range method is only valid for transition temperatures at:
   ! -40 deg C < T < 0 deg C
   call shr_assert_in_domain(ttrice, ge=0._r8, le=40._r8, varname="ttrice",&
@@ -227,8 +233,11 @@ subroutine wv_sat_init
   do i = 1, plenest
     estbl(i) = svp_trans(tmin + real(i-1,r8))
   end do
+#if defined (_OPENACC)
 !$acc update device(estbl)
-
+#elif defined (_OPENMP)
+!$omp target update to(estbl)
+#endif
   if (masterproc) then
      write(iulog,*)' *** SATURATION VAPOR PRESSURE TABLE COMPLETED ***'
   end if
@@ -263,7 +272,11 @@ end subroutine wv_sat_final
 
 ! Compute saturation vapor pressure over water
 elemental function svp_water(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
 
   use wv_sat_methods, only: &
        wv_sat_svp_water
@@ -277,7 +290,11 @@ end function svp_water
 
 ! Compute saturation vapor pressure over ice
 elemental function svp_ice(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
 
   use wv_sat_methods, only: &
        wv_sat_svp_ice
@@ -309,7 +326,11 @@ end function svp_trans
 ! Does linear interpolation from nearest values found
 ! in the table (estbl).
 elemental function estblf(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t ! Temperature 
   real(r8) :: es            ! SVP (Pa)
 
@@ -328,7 +349,11 @@ end function estblf
 ! Get enthalpy based only on temperature
 ! and specific humidity.
 elemental function tq_enthalpy(t, q, hltalt) result(enthalpy)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t      ! Temperature
   real(r8), intent(in) :: q      ! Specific humidity
   real(r8), intent(in) :: hltalt ! Modified hlat for T derivatives
@@ -349,7 +374,11 @@ elemental subroutine no_ip_hltalt(t, hltalt)
   !   Calculate latent heat of vaporization of pure liquid water at  !
   !   a given temperature.                                           !
   !------------------------------------------------------------------!
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t        ! Temperature
   ! Outputs
@@ -374,7 +403,11 @@ elemental subroutine calc_hltalt(t, hltalt, tterm)
   !   Optional argument also calculates a term used to calculate     !
   !   d(es)/dT within the water-ice transition range.                !
   !------------------------------------------------------------------!
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t        ! Temperature
   ! Outputs
@@ -426,7 +459,11 @@ end subroutine calc_hltalt
 ! Temperature derivative outputs, for qsat_*
 elemental subroutine deriv_outputs(t, p, es, qs, hltalt, tterm, &
      gam, dqsdt)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t      ! Temperature
   real(r8), intent(in) :: p      ! Pressure
@@ -468,7 +505,11 @@ elemental subroutine qsat(t, p, es, qs, gam, dqsdt, enthalpy)
   !   Optionally return various temperature derivatives or enthalpy  !
   !   at saturation.                                                 !
   !------------------------------------------------------------------!
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t    ! Temperature
   real(r8), intent(in) :: p    ! Pressure

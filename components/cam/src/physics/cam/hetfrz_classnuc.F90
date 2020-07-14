@@ -38,7 +38,12 @@ real(r8) :: mwh2o
 real(r8) :: tmelt
 real(r8) :: pi
 integer  :: iulog
+#if defined (_OPENACC)
 !$acc declare create(rair,cpair,rh2o,rhoh2o,mwh2o,tmelt,iulog,pi)
+#elif defined (_OPENMP)
+!$omp declare target(rair,cpair,rh2o,rhoh2o,mwh2o,tmelt,iulog,pi)
+#endif
+
 !===================================================================================================
 contains
 !===================================================================================================
@@ -64,7 +69,12 @@ subroutine hetfrz_classnuc_init( &
    tmelt  = tmelt_in
    pi     = pi_in
    iulog  = iulog_in
+#if defined (_OPENACC)
 !$acc update device(rair,cpair,rh2o,rhoh2o,mwh2o,tmelt,iulog,pi)
+#elif defined (_OPENMP)
+!$omp target update to(rair, cpair, rh2o, rhoh2o, mwh2o, tmelt, iulog, pi)
+#endif
+
 end subroutine hetfrz_classnuc_init
 
 !===================================================================================================
@@ -79,7 +89,11 @@ subroutine hetfrz_classnuc_calc( &
    hetraer, awcam, awfacm, dstcoat,                   &
    total_aer_num, coated_aer_num, uncoated_aer_num,  &
    total_interstitial_aer_num, total_cloudborne_aer_num, errstring)
-!$acc routine 
+#if defined (_OPENACC)
+!$acc routine
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
    real(r8), intent(in) :: deltat            ! timestep [s]
    real(r8), intent(in) :: t                 ! temperature [K]
    real(r8), intent(in) :: p                 ! pressure [Pa]
@@ -594,7 +608,11 @@ subroutine collkernel( &
    r_dust_a1, r_dust_a3,                   &  ! dust modes
    Kcoll_bc,                               &  ! collision kernel [cm3 s-1]
    Kcoll_dust_a1, Kcoll_dust_a3)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
 
    real(r8), intent(in) :: t                ! temperature [K]
    real(r8), intent(in) :: pres             ! pressure [Pa]

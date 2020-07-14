@@ -36,15 +36,21 @@ integer, parameter :: r8 = selected_real_kind(12) ! 8 byte real
 real(r8) :: tmelt   ! Melting point of water at 1 atm (K)
 real(r8) :: h2otrip ! Triple point temperature of water (K)
 real(r8) :: tboil   ! Boiling point of water at 1 atm (K)
+#if defined (_OPENACC)
 !$acc declare create(tmelt,h2otrip,tboil)
+#elif defined (_OPENMP)
+!$omp declare target(tmelt,h2otrip,tboil)
+#endif
 
 real(r8) :: ttrice  ! Ice-water transition range
 
 real(r8) :: epsilo  ! Ice-water transition range
 real(r8) :: omeps   ! 1._r8 - epsilo
-
+#if defined (_OPENACC)
 !$acc declare create(epsilo, omeps)
-
+#elif defined (_OPENMP)
+!$omp declare target(epsilo, omeps)
+#endif
 ! Indices representing individual schemes
 integer, parameter :: Invalid_idx = -1
 integer, parameter :: OldGoffGratch_idx = 0
@@ -55,7 +61,11 @@ integer, parameter :: Bolton_idx = 3
 ! Index representing the current default scheme.
 integer, parameter :: initial_default_idx = GoffGratch_idx
 integer :: default_idx = initial_default_idx
+#if defined (_OPENACC)
 !$acc declare copyin(default_idx)
+#elif defined (_OPENMP)
+!$omp declare target(default_idx)
+#endif
 
 public wv_sat_methods_init
 public wv_sat_get_scheme_idx
@@ -114,8 +124,11 @@ subroutine wv_sat_methods_init(kind, tmelt_in, h2otrip_in, tboil_in, &
   epsilo = epsilo_in
 
   omeps = 1._r8 - epsilo
+#if defined (_OPENACC)
 !$acc update device(tmelt,h2otrip,tboil,epsilo,omeps)
-
+#elif defined (_OPENMP)
+!$omp target update to(tmelt, h2otrip, tboil, epsilo, omeps)
+#endif
 end subroutine wv_sat_methods_init
 
 ! Look up index by name.
@@ -183,7 +196,11 @@ end subroutine wv_sat_reset_default
 ! Get saturation specific humidity given pressure and SVP.
 ! Specific humidity is limited to range 0-1.
 elemental function wv_sat_svp_to_qsat(es, p) result(qs)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: es  ! SVP
   real(r8), intent(in) :: p   ! Current pressure.
   real(r8) :: qs
@@ -203,7 +220,11 @@ elemental subroutine wv_sat_qsat_water(t, p, es, qs, idx)
   !   Calculate SVP over water at a given temperature, and then      !
   !   calculate and return saturation specific humidity.             !
   !------------------------------------------------------------------!
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t    ! Temperature
   real(r8), intent(in) :: p    ! Pressure
@@ -228,7 +249,11 @@ elemental subroutine wv_sat_qsat_ice(t, p, es, qs, idx)
   !   Calculate SVP over ice at a given temperature, and then        !
   !   calculate and return saturation specific humidity.             !
   !------------------------------------------------------------------!
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   ! Inputs
   real(r8), intent(in) :: t    ! Temperature
   real(r8), intent(in) :: p    ! Pressure
@@ -276,7 +301,11 @@ end subroutine wv_sat_qsat_trans
 ! SVP INTERFACE FUNCTIONS
 !---------------------------------------------------------------------
 elemental function wv_sat_svp_water(t, idx) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t
   integer,  intent(in), optional :: idx
   real(r8) :: es
@@ -303,7 +332,11 @@ elemental function wv_sat_svp_water(t, idx) result(es)
 end function wv_sat_svp_water
 
 elemental function wv_sat_svp_ice(t, idx) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t
   integer,  intent(in), optional :: idx
   real(r8) :: es
@@ -372,7 +405,11 @@ end function wv_sat_svp_trans
 
 ! Goff & Gratch (1946)
 elemental function GoffGratch_svp_water(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
   real(r8) :: es             ! SVP in Pa
 
@@ -385,7 +422,11 @@ elemental function GoffGratch_svp_water(t) result(es)
 
 end function GoffGratch_svp_water
 elemental function GoffGratch_svp_ice(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
   real(r8) :: es             ! SVP in Pa
 
@@ -398,7 +439,11 @@ end function GoffGratch_svp_ice
 
 ! Murphy & Koop (2005)
 elemental function MurphyKoop_svp_water(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
   real(r8) :: es             ! SVP in Pa
 
@@ -410,7 +455,11 @@ elemental function MurphyKoop_svp_water(t) result(es)
 
 end function MurphyKoop_svp_water
 elemental function MurphyKoop_svp_ice(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
   real(r8) :: es             ! SVP in Pa
 
@@ -434,7 +483,11 @@ end function MurphyKoop_svp_ice
 ! probably a mistake, it mildly improves accuracy for ice svp,
 ! since it compensates for a systematic error in Goff & Gratch.
 elemental function OldGoffGratch_svp_water(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t
   real(r8) :: es
   real(r8) :: ps, e1, e2, f1, f2, f3, f4, f5, f
@@ -454,7 +507,11 @@ elemental function OldGoffGratch_svp_water(t) result(es)
 end function OldGoffGratch_svp_water
 
 elemental function OldGoffGratch_svp_ice(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8), intent(in) :: t
   real(r8) :: es
   real(r8) :: term1, term2, term3
@@ -477,7 +534,11 @@ end function OldGoffGratch_svp_ice
 ! takes Kelvin and internally converts.
 
 elemental function Bolton_svp_water(t) result(es)
+#if defined (_OPENACC)
 !$acc routine seq
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
   real(r8),parameter :: c1 = 611.2_r8
   real(r8),parameter :: c2 = 17.67_r8
   real(r8),parameter :: c3 = 243.5_r8

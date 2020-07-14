@@ -912,7 +912,11 @@ endif
 
 call t_startf('shan30')
   ! Initialize local variables
+#if defined (_OPENACC)
 !$acc parallel loop collapse(2) copyout(rho, rhof, dv, sc, mu,arn,asn,acn,ain) copyin(p, t)
+#elif defined (_OPENMP)
+!$omp target teams distribute parallel do collapse(2) map(from:rho, rhof, dv, sc, mu, arn, asn, acn, ain) map(to:p, t)
+#endif
   do k = 1, nlev
     do i = 1, mgncol
       rho(i, k) = p(i,k)/(r*t(i,k))
@@ -932,13 +936,21 @@ call t_startf('shan30')
      ain(i, k)=ai*(rhosu/rho(i,k))**0.35_r8
     end do
   end do
+#if defined (_OPENACC)
 !$acc end parallel loop
+#elif defined (_OPENMP)
+!$omp end target teams distribute parallel do
+#endif
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   ! Get humidity and saturation vapor pressures
 
 call t_stopf('shan30')
 call t_startf('shan31')
+#if defined (_OPENACC)
 !$acc parallel loop collapse(2) private(k,i) copyin(t,p,q) copyout(esl, qvl, esi, qvi,relhum)
+#elif defined (_OPENMP)
+!$omp target teams distribute parallel do collapse(2) private(k, i) map(to:t, p, q) map(from:esl, qvl, esi, qvi, relhum)
+#endif
   do k=1,nlev
      do i=1,mgncol
 
@@ -955,7 +967,11 @@ call t_startf('shan31')
         relhum(i, k) = q(i,k) / max(qvl(i,k), qsmall)
      end do
   end do
+#if defined (_OPENACC)
 !$acc end parallel loop
+#elif defined (_OPENMP)
+!$omp end target teams distribute parallel do
+#endif
 
 !!  relhum = q / max(qvl, qsmall)
 

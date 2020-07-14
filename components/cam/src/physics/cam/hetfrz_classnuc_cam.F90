@@ -128,7 +128,7 @@ integer :: bc_pcarbon    ! black-c in primary carbon mode
 integer :: pom_pcarbon   ! p-organic in primary carbon mode
 integer :: mom_pcarbon   ! marine-organic in primary carbon mode
 integer :: num_pcarbon   ! number in primary carbon mode
-
+#if defined (_OPENACC)
 !$acc declare create(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
 !$acc declare create(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
 !$acc declare create(bc_pcarbon, num_finedust, num_coardust, so4_accum)
@@ -139,7 +139,18 @@ integer :: num_pcarbon   ! number in primary carbon mode
 !$acc declare create(alnsg_mode_finedust, alnsg_mode_coardust,alnsg_mode_pcarbon)
 !$acc declare create(so4_coarse, pom_pcarbon, mom_pcarbon)
 !$acc declare create(specdens_soa,specdens_mom,specdens_pom,specdens_so4)
-
+#elif defined (_OPENMP)
+!$omp declare target(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
+!$omp declare target(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
+!$omp declare target(bc_pcarbon, num_finedust, num_coardust, so4_accum)
+!$omp declare target(pom_accum, soa_accum, ncl_accum, mom_accum, num_accum)
+!$omp declare target(specdens_bc, specdens_dust, dst_finedust, dst_coardust)
+!$omp declare target(alnsg_mode_accum, alnsg_mode_coarse)
+!$omp declare target(so4_finedust, so4_coardust)
+!$omp declare target(alnsg_mode_finedust, alnsg_mode_coardust,alnsg_mode_pcarbon)
+!$omp declare target(so4_coarse, pom_pcarbon, mom_pcarbon)
+!$omp declare target(specdens_soa,specdens_mom,specdens_pom,specdens_so4)
+#endif
 ! Index arrays for looping over all constituents
 integer, allocatable :: mode_idx(:)
 integer, allocatable :: spec_idx(:)
@@ -150,8 +161,11 @@ real(r8), allocatable :: aer_cb(:,:,:,:)
 
 ! Copy of interstitial aerosols with basis converted from mass to volume.
 real(r8), allocatable :: aer(:,:,:,:)
+#if defined (_OPENACC)
 !$acc declare create(aer_cb, aer)
-
+#elif defined (_OPENMP)
+!$omp declare target(aer_cb, aer)
+#endif
 !===============================================================================
 contains
 !===============================================================================
@@ -679,6 +693,7 @@ subroutine hetfrz_classnuc_cam_init(mincld_in)
       rair, cpair, rh2o, rhoh2o, mwh2o, &
       tmelt, pi, iulog)
 
+#if defined (_OPENACC)
 !$acc update device(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
 !$acc update device(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
 !$acc update device(bc_pcarbon, num_finedust, num_coardust, so4_accum)
@@ -689,7 +704,18 @@ subroutine hetfrz_classnuc_cam_init(mincld_in)
 !$acc update device(alnsg_mode_finedust, alnsg_mode_coardust,alnsg_mode_pcarbon)
 !$acc update device(so4_coarse, pom_pcarbon, mom_pcarbon)
 !$acc update device(specdens_soa,specdens_mom,specdens_pom,specdens_so4)
-
+#elif defined (_OPENMP)
+!$omp target update to(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
+!$omp target update to(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
+!$omp target update to(bc_pcarbon, num_finedust, num_coardust, so4_accum)
+!$omp target update to(pom_accum, soa_accum, ncl_accum, mom_accum, num_accum)
+!$omp target update to(specdens_bc, specdens_dust, dst_finedust, dst_coardust)
+!$omp target update to(alnsg_mode_accum, alnsg_mode_coarse)
+!$omp target update to(so4_finedust, so4_coardust)
+!$omp target update to(alnsg_mode_finedust, alnsg_mode_coardust, alnsg_mode_pcarbon)
+!$omp target update to(so4_coarse, pom_pcarbon, mom_pcarbon)
+!$omp target update to(specdens_soa, specdens_mom, specdens_pom, specdens_so4)
+#endif
 
 end subroutine hetfrz_classnuc_cam_init
 
@@ -805,7 +831,11 @@ subroutine hetfrz_classnuc_cam_calc( &
       aer(:ncol,:,i,lchnk_zb) = ptr2d(:ncol,:) * rho(:ncol,:)
    end do
 !!!$acc update device(aer(:ncol,:,:,lchnk_zb), aer_cb(:ncol,:,:,lchnk_zb))
+#if defined (_OPENACC)
 !$acc update device(aer(:,:,:,lchnk_zb), aer_cb(:,:,:,lchnk_zb))
+#elif defined (_OPENMP)
+!$omp target update to(aer(:, :, :, lchnk_zb), aer_cb(:, :, :, lchnk_zb))
+#endif
 
    ! Init top levels of outputs of get_aer_num
    total_aer_num              = 0._r8
@@ -841,11 +871,19 @@ subroutine hetfrz_classnuc_cam_calc( &
 
 ! output aerosols as reference information for heterogeneous freezing
 ! shan , why K is needed ?
+#if defined (_OPENACC)
 !$acc enter data copyin(rho) &
 !$acc& create(na500,hetraer,coated_aer_num,awcam,dstcoat,tot_na500)  &
 !$acc& create(total_cloudborne_aer_num,uncoated_aer_num,total_interstitial_aer_num,awfacm) &
 !$acc& create(total_aer_num)
-!$acc kernels loop collapse(2) private(k,i) default(present) 
+!$acc kernels loop collapse(2) private(k,i) default(present)
+#elif defined (_OPENMP)
+!$omp target enter data map(to:rho) &
+!$omp& map(alloc:na500, hetraer, coated_aer_num, awcam, dstcoat, tot_na500) &
+!$omp& map(alloc:total_cloudborne_aer_num, uncoated_aer_num, total_interstitial_aer_num, awfacm) &
+!$omp& map(alloc:total_aer_num)
+!$omp target teams distribute parallel do collapse(2) private(k,i)
+#endif
    do k = top_lev, pver
       do i = 1, state%ncol
          call get_aer_num(i, k, ncnst, aer(:,:,:,lchnk_zb), aer_cb(:,:,:,lchnk_zb), rho(i,k), &
@@ -929,6 +967,7 @@ subroutine hetfrz_classnuc_cam_calc( &
    call t_stopf('shan1')
    call t_startf('shan2')
 
+#if defined (_OPENACC)
 !$acc  kernels loop collapse(2)  &
 !ZZ!$acc& private(fn,i,k) &
 !$acc& private(fn) &
@@ -937,6 +976,15 @@ subroutine hetfrz_classnuc_cam_calc( &
 !$acc& copyin(pmid, t,ncol) &
 !$acc& copyout(frzbcdep(:,:),frzduimm(:,:),frzdudep(:,:),errstring,frzbcimm(:,:),frzbccnt(:,:),frzducnt(:,:)) &
 !$acc& default(present)
+#elif defined (_OPENMP)
+!$omp target teams distribute parallel do collapse(2) &
+!ZZ!$omp& private(fn, i, k) &
+!$omp& private(fn) &
+!$omp& map(to:nc, factnum, lcldm, r3lx, qc, deltatin, supersatice) &
+!ZZ!$omp& map(to:pmid, t) &
+!$omp& map(to:pmid, t, ncol) &
+!$omp& map(from:frzbcdep(:, :), frzduimm(:, :), frzdudep(:, :), errstring, frzbcimm(:, :), frzbccnt(:, :), frzducnt(:, :))
+#endif
    do i = 1, ncol
       do k = top_lev, pver
 
@@ -972,13 +1020,21 @@ subroutine hetfrz_classnuc_cam_calc( &
 
       enddo
    enddo
+#if defined (_OPENACC)
 !$acc end kernels loop
-
 !$acc  exit data delete(rho) &
 !$acc& delete(hetraer, awcam, dstcoat, awfacm) &
 !$acc& delete(na500,coated_aer_num,tot_na500)  &
 !$acc& delete(total_cloudborne_aer_num,uncoated_aer_num,total_interstitial_aer_num) &
 !$acc& delete(total_aer_num)
+#elif defined (_OPENMP)
+!$omp end target teams distribute parallel do
+!$omp target exit data map(release:rho) &
+!$omp& map(release:hetraer, awcam, dstcoat, awfacm) &
+!$omp& map(release:na500, coated_aer_num, tot_na500) &
+!$omp& map(release:total_cloudborne_aer_num, uncoated_aer_num, total_interstitial_aer_num) &
+!$omp& map(release:total_aer_num)
+#endif
 
   call t_stopf('shan2')
    do i = 1, ncol
@@ -1101,8 +1157,11 @@ subroutine get_aer_num(ii, kk, ncnst, aer, aer_cb, rhoair,&
                        total_cloudborne_aer_num,          &
                        hetraer, awcam, awfacm, dstcoat,   &
                        na500, tot_na500)
+#if defined (_OPENACC)
 !$acc routine seq
-    
+#elif defined (_OPENMP)
+!$omp declare target
+#endif
    !*****************************************************************************
    ! Purpose: Calculate BC and Dust number, including total number(interstitial+
    !          cloud borne), one monolayer coated number, and uncoated number

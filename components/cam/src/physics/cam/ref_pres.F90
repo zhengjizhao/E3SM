@@ -34,8 +34,11 @@ integer, protected :: num_pr_lev
 real(r8), protected :: trop_cloud_top_press = 0._r8
 ! Top level for troposphere cloud physics
 integer, protected :: trop_cloud_top_lev
+#if defined (_OPENACC)
 !$acc declare create(trop_cloud_top_lev)
-
+#elif defined (_OPENMP)
+!$omp declare target(trop_cloud_top_lev)
+#endif
 ! Pressure used to set MAM process top (Pa)
 real(r8), protected :: clim_modal_aero_top_press = 0._r8
 ! Top level for MAM processes that impact climate
@@ -120,7 +123,11 @@ subroutine ref_pres_init
   ! Find level corresponding to the top of troposphere clouds.
   trop_cloud_top_lev = press_lim_idx(trop_cloud_top_press, &
        top=.true.)
+#if defined (_OPENACC)
 !$acc update device(trop_cloud_top_lev)
+#elif defined (_OPENMP)
+!$omp target update to(trop_cloud_top_lev)
+#endif
 
   ! Find level corresponding to the top for MAM processes.
   clim_modal_aero_top_lev = press_lim_idx(clim_modal_aero_top_press, &

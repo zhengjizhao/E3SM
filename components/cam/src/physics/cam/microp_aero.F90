@@ -905,7 +905,11 @@ subroutine subgrid_mean_updraft(ncol, w0, wsig, ww)
    integer  :: ibin
 
    !! program begins 
+#if defined (_OPENACC)
 !$acc parallel loop collapse(2) copyin(wsig,w0) copyout(ww) private(zz,wa) vector_length(64)
+#elif defined (_OPENMP)
+!$omp target teams distribute parallel do collapse(2) map(to:wsig, w0) map(from:ww) private(zz, wa) simd simdlen(64)
+#endif
    do k = 1, pver
    do i = 1, ncol
 

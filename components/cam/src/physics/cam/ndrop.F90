@@ -79,8 +79,11 @@ character(len=fieldname_len), allocatable :: fieldname_cw(:) ! names for drop nu
 integer, allocatable :: mam_idx(:,:) ! table for local indexing of modal aero number and mmr
 integer :: ncnst_tot                  ! total number of mode number conc + mode species
 integer, allocatable :: mam_idx_1d(:,:)
+#if defined (_OPENACC)
 !$acc declare create(mam_idx_1d, mam_idx)
-
+#elif defined (_OPENMP)
+!$omp declare target(mam_idx_1d, mam_idx)
+#endif
 ! Indices for MAM species in the ptend%q array.  Needed for prognostic aerosol case.
 integer, allocatable :: mam_cnst_idx(:,:)
 
@@ -203,8 +206,11 @@ subroutine ndrop_init
          mam_idx_1d(2, ii) = l
       end do
    end do
+#if defined (_OPENACC)
 !$acc update device(mam_idx_1d, mam_idx)
-
+#elif defined (_OPENMP)
+!$omp target update to(mam_idx_1d, mam_idx)
+#endif
    ! Add dropmixnuc tendencies for all modal aerosol species
 
    call phys_getopts(history_amwg_out = history_amwg, &
@@ -1862,10 +1868,17 @@ subroutine ccncalc(state, pbuf, cs, ccn)
 
    call t_startf('shan151')
 
+#if defined (_OPENACC)
 !$acc  data copy(ccn) &
 !$acc& copyin(super,ncol,amcubecoef,argfactor,tair,smcoefcoef,surften_coef) &
 !$acc& copyin(vaerosol, hygro, naerosol) 
 !$acc  parallel loop private(a,smcoef,arg,sm,amcube,m,i,l) default(present)
+#elif defined (_OPENMP)
+!$omp data map(tofrom:ccn) &
+!$omp& map(to:super, ncol, amcubecoef, argfactor, tair, smcoefcoef, surften_coef) &
+!$omp& map(to:vaerosol, hygro, naerosol) &
+!$omp target teams distribute parallel do
+#endif
    do k=top_lev,pver
       do i=1,ncol
          a(i)=surften_coef/tair(i,k)
@@ -1885,17 +1898,30 @@ subroutine ccncalc(state, pbuf, cs, ccn)
          enddo
       enddo
    enddo
+#if defined (_OPENACC)
 !$acc end parallel loop
+#elif defined (_OPENMP)
+!$omp end target teams distribute parallel do
+#endif
    call t_stopf('shan151')
 
    call t_startf('shan16')
+#if defined (_OPENACC)
 !$acc kernels default(present)
+#elif defined (_OPENMP)
+!$omp target teams distribute parallel do
+#endif
    ccn(:ncol,:,:)=ccn(:ncol,:,:)*1.e-6_r8 ! convert from #/m3 to #/cm3
+#if defined (_OPENACC)
 !$acc end kernels
+#endif
+
    call t_stopf('shan16')
-
-!$acc end data 
-
+#if defined (_OPENACC)
+!$acc end data
+#elif defined (_OPENMP)
+!$omp end data
+#endif
    deallocate( &
       amcubecoef, &
       argfactor   )
