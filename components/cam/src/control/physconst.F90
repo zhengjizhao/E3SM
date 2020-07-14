@@ -90,7 +90,11 @@ module physconst
    real(r8), public           :: ez           ! Coriolis expansion coeff -> omega/sqrt(0.375)   
    real(r8), public           :: Cpd_on_Cpv   = shr_const_cpdair/shr_const_cpwv
 
+#if defined (_OPENACC)
 !$acc declare create(gravit, tmelt, rh2o,rair)
+#elif defined (_OPENMP)
+!$omp declare target (gravit, tmelt, rh2o, rair)
+#endif
 
 !---------------  Variables below here are for WACCM-X -----------------------
    real(r8), public, dimension(:,:,:), pointer :: cpairv ! composition dependent specific heat at constant pressure
@@ -244,7 +248,11 @@ contains
       end if
       
 print *, "AAA: rh2o has been called"
+#if defined (_OPENACC)
 !$acc update device(gravit,tmelt,rh2o,rair)
+#elif defined (_OPENMP)
+!$omp target update to(gravit, tmelt, rh2o, rair)
+#endif
 
     end subroutine physconst_readnl
     

@@ -797,6 +797,17 @@ subroutine hetfrz_classnuc_cam_calc( &
       nc    => state%q(:pcols,:pver,numliq_idx), &
       pmid  => state%pmid               )
 
+!$omp target enter data map(to: state)
+!$omp target
+   associate( &
+      lchnk => state%lchnk,             &
+      ncol  => state%ncol,              &
+      t     => state%t,                 &
+      qc    => state%q(:pcols,:pver,cldliq_idx), &
+      nc    => state%q(:pcols,:pver,numliq_idx), &
+      pmid  => state%pmid               )
+!$omp end target
+
    lchnk_zb = lchnk - begchunk
 
    itim_old = pbuf_old_tim_idx()
@@ -978,10 +989,8 @@ subroutine hetfrz_classnuc_cam_calc( &
 !$acc& default(present)
 #elif defined (_OPENMP)
 !$omp target teams distribute parallel do collapse(2) &
-!ZZ!$omp& private(fn, i, k) &
 !$omp& private(fn) &
 !$omp& map(to:nc, factnum, lcldm, r3lx, qc, deltatin, supersatice) &
-!ZZ!$omp& map(to:pmid, t) &
 !$omp& map(to:pmid, t, ncol) &
 !$omp& map(from:frzbcdep(:, :), frzduimm(:, :), frzdudep(:, :), errstring, frzbcimm(:, :), frzbccnt(:, :), frzducnt(:, :))
 #endif

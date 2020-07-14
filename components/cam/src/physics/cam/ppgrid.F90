@@ -38,6 +38,11 @@ module ppgrid
    parameter (psubcols  = PSUBCOLS)
    parameter (pver      = PLEV)
    parameter (pverp     = pver + 1  )
+
+#if defined (_OPENMP)
+!$omp declare target to(pcols)
+#endif
+
 !
 ! start, end indices for chunks owned by a given MPI task
 ! (set in phys_grid_init).

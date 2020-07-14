@@ -362,7 +362,7 @@ subroutine dropmixnuc( &
    real(r8), parameter :: wmixmin = 0.1_r8        ! minimum turbulence vertical velocity (m/s)
    real(r8) :: sq2pi
 
-   integer  :: i, k, l, m, mm, n
+   integer  :: i, j, k, l, m, mm, n
    integer  :: km1, kp1
    integer  :: nnew, nsav, ntemp
    integer  :: lptr
@@ -1874,9 +1874,9 @@ subroutine ccncalc(state, pbuf, cs, ccn)
 !$acc& copyin(vaerosol, hygro, naerosol) 
 !$acc  parallel loop private(a,smcoef,arg,sm,amcube,m,i,l) default(present)
 #elif defined (_OPENMP)
-!$omp data map(tofrom:ccn) &
+!$omp target data map(tofrom:ccn) &
 !$omp& map(to:super, ncol, amcubecoef, argfactor, tair, smcoefcoef, surften_coef) &
-!$omp& map(to:vaerosol, hygro, naerosol) &
+!$omp& map(to:vaerosol, hygro, naerosol)
 !$omp target teams distribute parallel do
 #endif
    do k=top_lev,pver
@@ -1909,9 +1909,15 @@ subroutine ccncalc(state, pbuf, cs, ccn)
 #if defined (_OPENACC)
 !$acc kernels default(present)
 #elif defined (_OPENMP)
-!$omp target teams distribute parallel do
+!$omp target teams distribute parallel do collapse(3)
 #endif
-   ccn(:ncol,:,:)=ccn(:ncol,:,:)*1.e-6_r8 ! convert from #/m3 to #/cm3
+   do k = lbound(ccn,3), ubound(ccn,3)
+      do l = lbound(ccn,2), ubound(ccn,2)
+         do i = lbound(ccn,1), ncol
+            ccn(i,l,k)=ccn(i,l,k)*1.e-6_r8 ! convert from #/m3 to #/cm3
+         end do
+      end do
+   end do
 #if defined (_OPENACC)
 !$acc end kernels
 #endif
@@ -1920,7 +1926,7 @@ subroutine ccncalc(state, pbuf, cs, ccn)
 #if defined (_OPENACC)
 !$acc end data
 #elif defined (_OPENMP)
-!$omp end data
+!$omp end target data
 #endif
    deallocate( &
       amcubecoef, &

@@ -275,7 +275,7 @@ elemental function svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
 #elif defined (_OPENMP)
-!$omp declare target
+!ZZ!$omp declare target
 #endif
 
   use wv_sat_methods, only: &
@@ -293,7 +293,7 @@ elemental function svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
 #elif defined (_OPENMP)
-!$omp declare target
+!ZZ!$omp declare target
 #endif
 
   use wv_sat_methods, only: &
