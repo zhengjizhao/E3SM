@@ -70,7 +70,7 @@ module physics_types
           phis,    &! surface geopotential
           ulat,    &! unique latitudes  (radians)
           ulon      ! unique longitudes (radians)
-     real(r8), dimension(:,:),allocatable        :: &
+     real(r8), dimension(:,:), allocatable        :: &
           t,       &! temperature (K)
           u,       &! zonal wind (m/s)
           v,       &! meridional wind (m/s)
@@ -87,23 +87,23 @@ module physics_types
           exner,   &! inverse exner function w.r.t. surface pressure (ps/p)^(R/cp)
           zm        ! geopotential height above surface at midpoints (m)
 
-     real(r8), dimension(:,:,:),allocatable      :: &
+     real(r8), dimension(:,:,:), allocatable      :: &
           q         ! constituent mixing ratio (kg/kg moist or dry air depending on type)
 
-     real(r8), dimension(:,:),allocatable        :: &
+     real(r8), dimension(:,:), allocatable        :: &
           pint,    &! interface pressure (Pa)
           pintdry, &! interface pressure dry (Pa) 
           lnpint,  &! ln(pint)
           lnpintdry,&! log interface pressure dry (Pa) 
           zi        ! geopotential height above surface at interfaces (m)
 
-     real(r8), dimension(:),allocatable          :: &
+     real(r8), dimension(:), allocatable          :: &
           te_ini,  &! vertically integrated total (kinetic + static) energy of initial state
           te_cur,  &! vertically integrated total (kinetic + static) energy of current state
           tw_ini,  &! vertically integrated total water of initial state
           tw_cur    ! vertically integrated total water of new state
      integer :: count ! count of values with significant energy or water imbalances
-     integer, dimension(:),allocatable           :: &
+     integer, dimension(:), allocatable           :: &
           latmapback, &! map from column to unique lat for that column
           lonmapback, &! map from column to unique lon for that column
           cid        ! unique column id

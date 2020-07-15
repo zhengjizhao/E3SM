@@ -481,16 +481,26 @@ subroutine microp_aero_run ( &
    real(r8), allocatable :: factnum(:,:,:) ! activation fraction for aerosol number
    !-------------------------------------------------------------------------------
 
-   associate( &
-      lchnk => state%lchnk,             &
-      ncol  => state%ncol,              &
-      t     => state%t,                 &
-      qc    => state%q(:pcols,:pver,cldliq_idx), &
-      qi    => state%q(:pcols,:pver,cldice_idx), &
-      nc    => state%q(:pcols,:pver,numliq_idx), &
-      omega => state%omega,             &
-      pmid  => state%pmid               )
+   integer, pointer :: lchnk, ncol
+   real(r8), dimension(:,:), pointer :: qx, qi, nc, omega, pmid
+   lchnk => state%lchnk
+   ncol => state%ncol
+   t   => state%t
+   qc  => state%q(:pcols,:pver,cldliq_idx)
+   qi  => state%q(:pcols,:pver,cldice_idx)
+   nc  => state%q(:pcols,:pver,numliq_idx)
+   omega => state%omega
+   pmid => state%pmid
 
+   ! associate( &
+   !    lchnk => state%lchnk,             &
+   !    ncol  => state%ncol,              &
+   !    t     => state%t,                 &
+   !    qc    => state%q(:pcols,:pver,cldliq_idx), &
+   !    qi    => state%q(:pcols,:pver,cldice_idx), &
+   !    nc    => state%q(:pcols,:pver,numliq_idx), &
+   !    omega => state%omega,             &
+   !    pmid  => state%pmid               )
 
    call t_startf('microp_aero_run_init')
 
@@ -907,8 +917,8 @@ subroutine subgrid_mean_updraft(ncol, w0, wsig, ww)
    !! program begins 
 #if defined (_OPENACC)
 !$acc parallel loop collapse(2) copyin(wsig,w0) copyout(ww) private(zz,wa) vector_length(64)
-#elif defined (_OPENMP)
-!$omp target teams distribute parallel do collapse(2) map(to:wsig, w0) map(from:ww) private(zz, wa) simd simdlen(64)
+#elif defined (CAM_OMP)
+!$omp target teams distribute parallel do collapse(2) map(to:wsig, w0) map(from:ww) private(zz, wa)
 #endif
    do k = 1, pver
    do i = 1, ncol

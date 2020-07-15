@@ -914,7 +914,7 @@ call t_startf('shan30')
   ! Initialize local variables
 #if defined (_OPENACC)
 !$acc parallel loop collapse(2) copyout(rho, rhof, dv, sc, mu,arn,asn,acn,ain) copyin(p, t)
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp target teams distribute parallel do collapse(2) map(from:rho, rhof, dv, sc, mu, arn, asn, acn, ain) map(to:p, t)
 #endif
   do k = 1, nlev
@@ -938,7 +938,7 @@ call t_startf('shan30')
   end do
 #if defined (_OPENACC)
 !$acc end parallel loop
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp end target teams distribute parallel do
 #endif
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -948,7 +948,7 @@ call t_stopf('shan30')
 call t_startf('shan31')
 #if defined (_OPENACC)
 !$acc parallel loop collapse(2) private(k,i) copyin(t,p,q) copyout(esl, qvl, esi, qvi,relhum)
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp target teams distribute parallel do collapse(2) private(k, i) map(to:t, p, q) map(from:esl, qvl, esi, qvi, relhum)
 #endif
   do k=1,nlev
@@ -969,7 +969,7 @@ call t_startf('shan31')
   end do
 #if defined (_OPENACC)
 !$acc end parallel loop
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp end target teams distribute parallel do
 #endif
 

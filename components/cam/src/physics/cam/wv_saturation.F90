@@ -100,7 +100,7 @@ real(r8), parameter :: tboil = 373.16_r8
        -7.78053686625e-05_r8 /)
 #if defined (_OPENACC)
 !$acc declare create(omeps, estbl) copyin(pcf)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target (omeps, estbl, pcf)
 #endif
 !   --- Degree 6 approximation ---
@@ -202,7 +202,7 @@ subroutine wv_sat_init
   omeps  = 1.0_r8 - epsilo
 #if defined (_OPENACC)
 !$acc update device(omeps)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(omeps)
 #endif
   ! Transition range method is only valid for transition temperatures at:
@@ -235,7 +235,7 @@ subroutine wv_sat_init
   end do
 #if defined (_OPENACC)
 !$acc update device(estbl)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(estbl)
 #endif
   if (masterproc) then
@@ -274,7 +274,7 @@ end subroutine wv_sat_final
 elemental function svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !ZZ!$omp declare target
 #endif
 
@@ -292,7 +292,7 @@ end function svp_water
 elemental function svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !ZZ!$omp declare target
 #endif
 
@@ -328,7 +328,7 @@ end function svp_trans
 elemental function estblf(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t ! Temperature 
@@ -351,7 +351,7 @@ end function estblf
 elemental function tq_enthalpy(t, q, hltalt) result(enthalpy)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t      ! Temperature
@@ -376,7 +376,7 @@ elemental subroutine no_ip_hltalt(t, hltalt)
   !------------------------------------------------------------------!
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs
@@ -405,7 +405,7 @@ elemental subroutine calc_hltalt(t, hltalt, tterm)
   !------------------------------------------------------------------!
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs
@@ -461,7 +461,7 @@ elemental subroutine deriv_outputs(t, p, es, qs, hltalt, tterm, &
      gam, dqsdt)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs
@@ -507,7 +507,7 @@ elemental subroutine qsat(t, p, es, qs, gam, dqsdt, enthalpy)
   !------------------------------------------------------------------!
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs

@@ -81,7 +81,7 @@ integer :: ncnst_tot                  ! total number of mode number conc + mode 
 integer, allocatable :: mam_idx_1d(:,:)
 #if defined (_OPENACC)
 !$acc declare create(mam_idx_1d, mam_idx)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(mam_idx_1d, mam_idx)
 #endif
 ! Indices for MAM species in the ptend%q array.  Needed for prognostic aerosol case.
@@ -208,7 +208,7 @@ subroutine ndrop_init
    end do
 #if defined (_OPENACC)
 !$acc update device(mam_idx_1d, mam_idx)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(mam_idx_1d, mam_idx)
 #endif
    ! Add dropmixnuc tendencies for all modal aerosol species
@@ -1873,7 +1873,7 @@ subroutine ccncalc(state, pbuf, cs, ccn)
 !$acc& copyin(super,ncol,amcubecoef,argfactor,tair,smcoefcoef,surften_coef) &
 !$acc& copyin(vaerosol, hygro, naerosol) 
 !$acc  parallel loop private(a,smcoef,arg,sm,amcube,m,i,l) default(present)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target data map(tofrom:ccn) &
 !$omp& map(to:super, ncol, amcubecoef, argfactor, tair, smcoefcoef, surften_coef) &
 !$omp& map(to:vaerosol, hygro, naerosol)
@@ -1900,7 +1900,7 @@ subroutine ccncalc(state, pbuf, cs, ccn)
    enddo
 #if defined (_OPENACC)
 !$acc end parallel loop
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp end target teams distribute parallel do
 #endif
    call t_stopf('shan151')
@@ -1908,7 +1908,7 @@ subroutine ccncalc(state, pbuf, cs, ccn)
    call t_startf('shan16')
 #if defined (_OPENACC)
 !$acc kernels default(present)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target teams distribute parallel do collapse(3)
 #endif
    do k = lbound(ccn,3), ubound(ccn,3)
@@ -1925,7 +1925,7 @@ subroutine ccncalc(state, pbuf, cs, ccn)
    call t_stopf('shan16')
 #if defined (_OPENACC)
 !$acc end data
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp end target data
 #endif
    deallocate( &

@@ -39,7 +39,7 @@ module ppgrid
    parameter (pver      = PLEV)
    parameter (pverp     = pver + 1  )
 
-#if defined (_OPENMP)
+#if defined (CAM_OMP)
 !$omp declare target to(pcols)
 #endif
 

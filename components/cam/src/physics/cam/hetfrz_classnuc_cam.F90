@@ -139,7 +139,7 @@ integer :: num_pcarbon   ! number in primary carbon mode
 !$acc declare create(alnsg_mode_finedust, alnsg_mode_coardust,alnsg_mode_pcarbon)
 !$acc declare create(so4_coarse, pom_pcarbon, mom_pcarbon)
 !$acc declare create(specdens_soa,specdens_mom,specdens_pom,specdens_so4)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
 !$omp declare target(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
 !$omp declare target(bc_pcarbon, num_finedust, num_coardust, so4_accum)
@@ -163,7 +163,7 @@ real(r8), allocatable :: aer_cb(:,:,:,:)
 real(r8), allocatable :: aer(:,:,:,:)
 #if defined (_OPENACC)
 !$acc declare create(aer_cb, aer)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(aer_cb, aer)
 #endif
 !===============================================================================
@@ -704,7 +704,7 @@ subroutine hetfrz_classnuc_cam_init(mincld_in)
 !$acc update device(alnsg_mode_finedust, alnsg_mode_coardust,alnsg_mode_pcarbon)
 !$acc update device(so4_coarse, pom_pcarbon, mom_pcarbon)
 !$acc update device(specdens_soa,specdens_mom,specdens_pom,specdens_so4)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(ncnst, nmodes, dst_accum, bc_accum, dst_coarse, ncl_coarse)
 !$omp target update to(mom_coarse, bc_coarse, pom_coarse, soa_coarse, num_coarse)
 !$omp target update to(bc_pcarbon, num_finedust, num_coardust, so4_accum)
@@ -797,17 +797,6 @@ subroutine hetfrz_classnuc_cam_calc( &
       nc    => state%q(:pcols,:pver,numliq_idx), &
       pmid  => state%pmid               )
 
-!$omp target enter data map(to: state)
-!$omp target
-   associate( &
-      lchnk => state%lchnk,             &
-      ncol  => state%ncol,              &
-      t     => state%t,                 &
-      qc    => state%q(:pcols,:pver,cldliq_idx), &
-      nc    => state%q(:pcols,:pver,numliq_idx), &
-      pmid  => state%pmid               )
-!$omp end target
-
    lchnk_zb = lchnk - begchunk
 
    itim_old = pbuf_old_tim_idx()
@@ -844,7 +833,7 @@ subroutine hetfrz_classnuc_cam_calc( &
 !!!$acc update device(aer(:ncol,:,:,lchnk_zb), aer_cb(:ncol,:,:,lchnk_zb))
 #if defined (_OPENACC)
 !$acc update device(aer(:,:,:,lchnk_zb), aer_cb(:,:,:,lchnk_zb))
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(aer(:, :, :, lchnk_zb), aer_cb(:, :, :, lchnk_zb))
 #endif
 
@@ -888,7 +877,7 @@ subroutine hetfrz_classnuc_cam_calc( &
 !$acc& create(total_cloudborne_aer_num,uncoated_aer_num,total_interstitial_aer_num,awfacm) &
 !$acc& create(total_aer_num)
 !$acc kernels loop collapse(2) private(k,i) default(present)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target enter data map(to:rho) &
 !$omp& map(alloc:na500, hetraer, coated_aer_num, awcam, dstcoat, tot_na500) &
 !$omp& map(alloc:total_cloudborne_aer_num, uncoated_aer_num, total_interstitial_aer_num, awfacm) &
@@ -987,7 +976,7 @@ subroutine hetfrz_classnuc_cam_calc( &
 !$acc& copyin(pmid, t,ncol) &
 !$acc& copyout(frzbcdep(:,:),frzduimm(:,:),frzdudep(:,:),errstring,frzbcimm(:,:),frzbccnt(:,:),frzducnt(:,:)) &
 !$acc& default(present)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target teams distribute parallel do collapse(2) &
 !$omp& private(fn) &
 !$omp& map(to:nc, factnum, lcldm, r3lx, qc, deltatin, supersatice) &
@@ -1036,7 +1025,7 @@ subroutine hetfrz_classnuc_cam_calc( &
 !$acc& delete(na500,coated_aer_num,tot_na500)  &
 !$acc& delete(total_cloudborne_aer_num,uncoated_aer_num,total_interstitial_aer_num) &
 !$acc& delete(total_aer_num)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp end target teams distribute parallel do
 !$omp target exit data map(release:rho) &
 !$omp& map(release:hetraer, awcam, dstcoat, awfacm) &
@@ -1168,7 +1157,7 @@ subroutine get_aer_num(ii, kk, ncnst, aer, aer_cb, rhoair,&
                        na500, tot_na500)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
    !*****************************************************************************

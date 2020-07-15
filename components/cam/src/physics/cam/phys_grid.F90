@@ -466,7 +466,7 @@ contains
     logical                             :: unstructured
     real(r8)                            :: lonmin, latmin
 
-#if ( defined _OPENMP )
+#if ( defined CAM_SRC )
     integer omp_get_max_threads
     external omp_get_max_threads
 #endif
@@ -679,7 +679,7 @@ contains
     npthreads(:) = 0
 
     nlthreads = 1
-#if ( defined _OPENMP )
+#if ( defined CAM_SRC )
     nlthreads = OMP_GET_MAX_THREADS()
 #endif
 !

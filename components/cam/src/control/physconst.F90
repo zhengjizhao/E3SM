@@ -92,7 +92,7 @@ module physconst
 
 #if defined (_OPENACC)
 !$acc declare create(gravit, tmelt, rh2o,rair)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target (gravit, tmelt, rh2o, rair)
 #endif
 
@@ -250,7 +250,7 @@ contains
 print *, "AAA: rh2o has been called"
 #if defined (_OPENACC)
 !$acc update device(gravit,tmelt,rh2o,rair)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(gravit, tmelt, rh2o, rair)
 #endif
 

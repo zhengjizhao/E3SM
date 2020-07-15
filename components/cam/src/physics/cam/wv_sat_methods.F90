@@ -38,7 +38,7 @@ real(r8) :: h2otrip ! Triple point temperature of water (K)
 real(r8) :: tboil   ! Boiling point of water at 1 atm (K)
 #if defined (_OPENACC)
 !$acc declare create(tmelt,h2otrip,tboil)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(tmelt,h2otrip,tboil)
 #endif
 
@@ -48,7 +48,7 @@ real(r8) :: epsilo  ! Ice-water transition range
 real(r8) :: omeps   ! 1._r8 - epsilo
 #if defined (_OPENACC)
 !$acc declare create(epsilo, omeps)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(epsilo, omeps)
 #endif
 ! Indices representing individual schemes
@@ -63,7 +63,7 @@ integer, parameter :: initial_default_idx = GoffGratch_idx
 integer :: default_idx = initial_default_idx
 #if defined (_OPENACC)
 !$acc declare copyin(default_idx)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target(default_idx)
 #endif
 
@@ -126,7 +126,7 @@ subroutine wv_sat_methods_init(kind, tmelt_in, h2otrip_in, tboil_in, &
   omeps = 1._r8 - epsilo
 #if defined (_OPENACC)
 !$acc update device(tmelt,h2otrip,tboil,epsilo,omeps)
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp target update to(tmelt, h2otrip, tboil, epsilo, omeps)
 #endif
 end subroutine wv_sat_methods_init
@@ -198,7 +198,7 @@ end subroutine wv_sat_reset_default
 elemental function wv_sat_svp_to_qsat(es, p) result(qs)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: es  ! SVP
@@ -222,7 +222,7 @@ elemental subroutine wv_sat_qsat_water(t, p, es, qs, idx)
   !------------------------------------------------------------------!
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs
@@ -251,7 +251,7 @@ elemental subroutine wv_sat_qsat_ice(t, p, es, qs, idx)
   !------------------------------------------------------------------!
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   ! Inputs
@@ -303,7 +303,7 @@ end subroutine wv_sat_qsat_trans
 elemental function wv_sat_svp_water(t, idx) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t
@@ -334,7 +334,7 @@ end function wv_sat_svp_water
 elemental function wv_sat_svp_ice(t, idx) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t
@@ -407,7 +407,7 @@ end function wv_sat_svp_trans
 elemental function GoffGratch_svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
@@ -424,7 +424,7 @@ end function GoffGratch_svp_water
 elemental function GoffGratch_svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
@@ -441,7 +441,7 @@ end function GoffGratch_svp_ice
 elemental function MurphyKoop_svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
@@ -457,7 +457,7 @@ end function MurphyKoop_svp_water
 elemental function MurphyKoop_svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t  ! Temperature in Kelvin
@@ -485,7 +485,7 @@ end function MurphyKoop_svp_ice
 elemental function OldGoffGratch_svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t
@@ -509,7 +509,7 @@ end function OldGoffGratch_svp_water
 elemental function OldGoffGratch_svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8), intent(in) :: t
@@ -536,7 +536,7 @@ end function OldGoffGratch_svp_ice
 elemental function Bolton_svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (_OPENMP)
+#elif defined (CAM_OMP)
 !$omp declare target
 #endif
   real(r8),parameter :: c1 = 611.2_r8

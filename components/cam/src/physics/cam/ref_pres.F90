@@ -36,7 +36,7 @@ real(r8), protected :: trop_cloud_top_press = 0._r8
 integer, protected :: trop_cloud_top_lev
 #if defined (_OPENACC)
 !$acc declare create(trop_cloud_top_lev)
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp declare target(trop_cloud_top_lev)
 #endif
 ! Pressure used to set MAM process top (Pa)
@@ -125,7 +125,7 @@ subroutine ref_pres_init
        top=.true.)
 #if defined (_OPENACC)
 !$acc update device(trop_cloud_top_lev)
-#elif defined (_OPENMP)
+#elif defined (CAM_SRC)
 !$omp target update to(trop_cloud_top_lev)
 #endif
 
