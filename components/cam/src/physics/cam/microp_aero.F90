@@ -482,7 +482,7 @@ subroutine microp_aero_run ( &
    !-------------------------------------------------------------------------------
 
    integer, pointer :: lchnk, ncol
-   real(r8), dimension(:,:), pointer :: qx, qi, nc, omega, pmid
+   real(r8), dimension(:,:), pointer :: t, qc, qi, nc, omega, pmid
    lchnk => state%lchnk
    ncol => state%ncol
    t   => state%t
@@ -878,7 +878,7 @@ subroutine microp_aero_run ( &
       deallocate(factnum)
    end if
 
-   end associate
+   ! end associate
 
 end subroutine microp_aero_run
 
