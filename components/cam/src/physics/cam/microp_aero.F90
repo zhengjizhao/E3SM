@@ -397,7 +397,7 @@ subroutine microp_aero_run ( &
    state, ptend, deltatin, pbuf, liqcldfo )
 
    ! input arguments
-   type(physics_state), target, intent(in)    :: state
+   type(physics_state), target, intent(inout)    :: state
    type(physics_ptend),         intent(out)   :: ptend
    real(r8),                    intent(in)    :: deltatin     ! time step (s)
    real(r8),                    intent(in)    :: liqcldfo(pcols,pver)  ! old liquid cloud fraction

@@ -725,7 +725,7 @@ subroutine hetfrz_classnuc_cam_calc( &
    state, deltatin, factnum, pbuf)
 
    ! arguments
-   type(physics_state), target, intent(in)    :: state
+   type(physics_state), target, intent(inout)    :: state
    real(r8),                    intent(in)    :: deltatin       ! time step (s)
    real(r8),                    intent(in)    :: factnum(:,:,:) ! activation fraction for aerosol number
    type(physics_buffer_desc),   pointer       :: pbuf(:)

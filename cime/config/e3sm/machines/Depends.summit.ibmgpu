@@ -1,25 +1,34 @@
 dyn_comp.o: dyn_comp.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS_NOOPT) $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC $(FFLAGS_NOOPT) $(FREEFLAGS) $<
 
 microp_aero.o: microp_aero.F90
-	$(FC) -c $(INCLDIR) $(INCS) -qsmp -qoffload $(FFLAGS_NOOPT) $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT) $(FREEFLAGS) $<
 ref_pres.o: ref_pres.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT) $(FREEFLAGS) $<
 wv_sat_methods.o: wv_sat_methods.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT) $(FREEFLAGS) $<
 wv_saturation.o: wv_saturation.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 hetfrz_classnuc.o: hetfrz_classnuc.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 cam_logfile.o: cam_logfile.F90 
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 ndrop.o: ndrop.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 hetfrz_classnuc_cam.o: hetfrz_classnuc_cam.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 nucleate_ice.o: nucleate_ice.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
 physconst.o: physconst.F90
-	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp -qoffload  $(FREEFLAGS) $<
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
+ppgrid.o: ppgrid.F90
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
+micro_mg2_0.o: micro_mg2_0.F90
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
+phys_grid.o: phys_grid.F90
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
+ref_pres.o: ref_pres.F90
+	$(FC) -c $(INCLDIR) $(INCS) $(FFLAGS) -qsmp=omp -qoffload -DCAM_OMP -DCAM_SRC  $(FFLAGS_NOOPT)  $(FREEFLAGS) $<
+
 
 

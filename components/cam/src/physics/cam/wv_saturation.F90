@@ -274,8 +274,6 @@ end subroutine wv_sat_final
 elemental function svp_water(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (CAM_OMP)
-!ZZ!$omp declare target
 #endif
 
   use wv_sat_methods, only: &
@@ -283,6 +281,9 @@ elemental function svp_water(t) result(es)
 
   real(r8), intent(in) :: t ! Temperature (K)
   real(r8) :: es            ! SVP (Pa)
+#if defined (CAM_OMP)
+!$omp declare target 
+#endif
 
   es = wv_sat_svp_water(T)
 
@@ -292,8 +293,6 @@ end function svp_water
 elemental function svp_ice(t) result(es)
 #if defined (_OPENACC)
 !$acc routine seq
-#elif defined (CAM_OMP)
-!ZZ!$omp declare target
 #endif
 
   use wv_sat_methods, only: &
@@ -301,6 +300,9 @@ elemental function svp_ice(t) result(es)
 
   real(r8), intent(in) :: t ! Temperature (K)
   real(r8) :: es            ! SVP (Pa)
+#if defined (CAM_OMP)
+!$omp declare target 
+#endif
 
   es = wv_sat_svp_ice(T)
 
